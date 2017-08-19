@@ -9,7 +9,7 @@ Columbia University NYC, NY
 this is the main file to be run
 python starcat.py
 '''
-from __future__ import division, absolute_import, print_function
+from __future__ import division, print_function
 import os
 import shutil
 import sys
@@ -20,9 +20,8 @@ from Tkinter import *
 import tkFileDialog
 import tkSimpleDialog
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from astropy.table import Table
-import astropy.units as u
+
 import gui_plotlib as gplt
 
 # tkSimpleDialog.askinteger(title, prompt [,options])
@@ -46,6 +45,13 @@ class StatusBar(Frame):
         self.label.update_idletasks()
 
 
+def my_mkdir(_dir):
+    if not os.path.isdir(_dir):
+        print('making ', _dir)
+        os.mkdir(_dir)
+        print('done')
+
+
 class App:
 
     def __init__(self, master):
@@ -66,21 +72,28 @@ class App:
                 self.data_dir = os.path.join(pth, os.path.sep)
             self.data_dir = os.path.join(self.data_dir, pth)
         self.data_dir = os.path.join(self.data_dir, 'data')
-        self.save_dir = os.path.join(self.data_dir, 'saved')
+
+        # preexisting directories
         self.table_dir = os.path.join(self.data_dir, 'tables')
-        self.plot_dir = os.path.join(self.data_dir, 'plots')
-        self.catalog_dir = os.path.join(self.data_dir, 'catalogs')
         self.grid_dir = os.path.join(self.data_dir, 'grids')
 
+        # new directories
+        self.save_dir = os.path.join(self.data_dir, 'saved')
+        self.plot_dir = os.path.join(self.data_dir, 'plots')
+        self.catalog_dir = os.path.join(self.data_dir, 'catalogs')
+        my_mkdir(self.save_dir)
+        my_mkdir(self.plot_dir)
+        my_mkdir(self.catalog_dir)
+
         # regions
-        self.regions = []
-        self.number_of_regions = 0
-        self.number_of_regions_tot = 0
-        self.region_size = 10
+        self.regions = {}
+        # 0.11 arcsec WFI detector pixel scale in arcseconds/pixel
+        self.region_pixel_size = 0.11
+        # (x, y) Number of active detector columns
+        self.region_ccd_size = (4088, 4088)
 
         # status messages
-        self.smsg_region = '[current regions: ' + \
-            str(self.number_of_regions) + ']    '
+        self.smsg_region = '[current regions: 0]    '
         self.smsg_mouse_xy = '[] '
         self.smsg_kpc_xy = '[]   '
 
@@ -88,8 +101,9 @@ class App:
         self.plot_size = (800, 800)
         self.plotwindow_size = 1000
         self.has_plot = False
-        master.minsize(width=self.plot_size[
-                       0] + 50, height=self.plot_size[0] + 100)
+        min_w = self.plot_size[0] + 50
+        min_h = self.plot_size[0] + 100
+        master.minsize(width=min_w, height=min_h)
 
         # plot settings
         self.plot_dpi = 400
@@ -97,8 +111,10 @@ class App:
         self.plot_known_units = ['kpc', 'arcmin', 'arcsec', 'degree']
         self.plot_extention = '.png'
         self.plot_radius_kpc = 150
+        self.plot_has_cb = False
 
         # catalog settings
+        self.catalog_known_ext = ['.fits', '.hdf5', '.csv']
         self.catalog_extention = '.fits'
 
         # =====================================================================
@@ -148,41 +164,57 @@ class App:
         plot_menu.add_command(
             label="Set plot dpi",
             command=self.plot_set_dpi)
-
         plot_menu.add_command(
             label="Set plot directory",
             command=self.plot_set_directory)
-
         plot_menu.add_command(
             label="Set plot units",
             command=self.plot_set_units)
         plot_menu.add_command(
             label="Set plot radius",
             command=self.plot_set_radius)
-
         plot_menu.add_command(
             label="Set plot extension",
             command=self.plot_set_ext)
         plot_menu.add_separator()
         plot_menu.add_command(
+            label='Clear plot',
+            command=self.clear_label_image,
+            background='orange2')
+        plot_menu.add_separator()
+        plot_menu.add_command(
             label="Remove all",
             command=self.plot_remove_all,
-            background='red')
-
+            background='OrangeRed2')
         topmenu.add_cascade(
             label="Plot",
             menu=plot_menu)
+
+        # top menu - region menu
+        region_menu = Menu(topmenu)
+        region_menu.add_command(
+            label='Detector Size',
+            command=self.region_set_ccd_size)
+        region_menu.add_command(
+            label='Pixel Size',
+            command=self.region_set_pix_size)
+        topmenu.add_cascade(
+            label='Region',
+            menu=region_menu)
 
         # top menu - catalog menu
         self.catalog_menu = Menu(topmenu)
         self.catalog_menu.add_command(
             label='Make Catalogs',
             command=self.catalog_makeall)
+        self.catalog_menu.add_command(
+            label='Set catalog extension',
+            command=self.catalog_set_ext)
         self.catalog_menu.add_separator()
         self.catalog_menu.add_command(
             label='Remove all',
             command=self.catalog_remove_all,
-            background='red')
+            background='OrangeRed2')
         topmenu.add_cascade(
             label='Catalog',
             menu=self.catalog_menu)
@@ -195,10 +227,62 @@ class App:
         self.rightclick.add_command(
             label='Remove region',
             command=self.region_remove)
+        self.rightclick.add_separator()
+        self.rightclick.add_command(
+            label='Show Color-bar',
+            command=self.plot_show_colorbar,
+            background='lightgreen')
 
     # =====================================================================
     #                              FUNCTIONS
     # =====================================================================
+
+    def region_set_ccd_size(self):
+        print('[region_set_ccd_size]')
+        print('current ccd size:', self.region_ccd_size)
+        ccd_x = tkSimpleDialog.askinteger(
+            title='Set WFI Active Detector CCD Size X-Axis',
+            prompt='Enter new X length in pixels\nNumber of active detector columns: ',
+            minvalue=100,
+            maxvalue=16000,
+            parent=self.plotwindow,
+            initialvalue=self.region_ccd_size[0])
+        ccd_y = tkSimpleDialog.askinteger(
+            title='Set WFI Active Detector CCD Size Y-Axis',
+            prompt='Enter new Y length in pixels\nNumber of active detector rows ',
+            minvalue=100,
+            maxvalue=16000,
+            parent=self.plotwindow,
+            initialvalue=self.region_ccd_size[1])
+        self.region_ccd_size = (ccd_x, ccd_y)
+        print('new ccd size:', self.region_ccd_size)
+        print('[region_set_ccd_size finished]')
+
+    def region_set_pix_size(self):
+        print('[region_set_pix_size]')
+        print('current pixel size:', self.region_pixel_size)
+        pixel = tkSimpleDialog.askfloat(
+            title='Set WFI Pixel Scale',
+            prompt='Enter new WFI detector pixel scale in arcseconds/pixel ',
+            minvalue=0.05,
+            maxvalue=0.17,
+            parent=self.plotwindow,
+            initialvalue=self.region_pixel_size)
+        self.region_pixel_size = pixel
+        print('new pixel size:', self.region_pixel_size)
+        print('[region_set_pix_size finished]')
+
+    def plot_show_colorbar(self):
+        if not self.plot_has_cb:
+            return
+        image = PImage.open(self.plot_cb_fh)
+        photo = ImageTk.PhotoImage(image)
+        self.plot_cb = Label(master=self.plotwindow, image=photo)
+        self.plot_cb.image = photo
+        self.plot_cb.grid(row=3, column=0)
+        print('[plot_halo complete]')
+
+
     def plot_set_ext(self):
         print('[plot_set_ext]')
         print('current ext:', self.plot_extention)
@@ -305,102 +389,139 @@ class App:
                 print(' --> not a halo output directory')
         print('[catalog_remove_all complete]')
 
+    def catalog_set_ext(self):
+        print('[catalog_set_ext]')
+        known_types = ''
+        for typ in self.catalog_known_ext:
+            if typ == self.catalog_known_ext[- 1]:
+                segment = typ + '.'
+            else:
+                segment = typ + ', '
+
+            known_types += segment
+        ext = tkSimpleDialog.askstring(
+            title='Catalog Extension Type',
+            prompt='Enter new Ext \nchoose from: ' + known_types,
+            parent=self.plotwindow,
+            initialvalue=self.catalog_extention)
+
+        print('[catalog_set_ext complete]')
+
     def catalog_makeall(self):
         print('[catalog_makeall]')
 
-        if not self.regions:
-            print('there are not regions to catalog')
+        if not self.regions.keys():
+            print('there are no regions to catalog')
             return
-        record_table = self.record_table()
-        for region in self.regions:
-            print('loading region:', region['name'])
-            for key in region.keys():
-                print(' -> ', key, ' : ', region[key])
-            catalog_name = region['name']
-            catalog_dir = os.path.join(self.catalog_dir, region['halo'])
 
-            # TODO - ask to overwrite existing data
-            # ===============================================================================
-            # TODO
-            if not os.path.isdir(catalog_dir):
-                print('making catalog directory')
-                os.mkdir(catalog_dir)
-                print(catalog_dir)
-            else:
-                print('catalog directory exists')
-                print('contents:')
-                for f in os.listdir(catalog_dir):
-                    print('  --> ', f)
+        for halo in self.regions.keys():
 
-            print('making catalog file handle')
-            catalog_fh = os.path.join(
-                catalog_dir, region['name'] + self.catalog_extention)
-            print(catalog_fh)
-            if os.path.isfile(catalog_fh):
-                print('catalog exists')
-                try:
-                    number = '_0' + \
-                        str(int(catalog_fh.split('.')[-2][-2:]) + 1)
-                except:
-                    number = '_01'
+            record_table = self.record_table()
+
+            for region in self.regions[halo][2:]:
+
+                print('loading region:', region['name'], 'for', halo)
+                for key in region.keys():
+                    print(' -> ', key, ' : ', region[key])
+                catalog_name = region['name']
+                catalog_dir = os.path.join(self.catalog_dir, halo)
+
                 # TODO - ask to overwrite existing data
                 # ===============================================================================
                 # TODO
-                catalog_fh = os.path.join(
-                    catalog_dir, region['name'] + number + self.catalog_extention)
-            print('finding stars within region boundaries')
-            print('x0:', region['x0'])
-            print('x1:', region['x1'])
-            print('y0:', region['y0'])
-            print('y1:', region['y1'])
-            idx = np.nonzero(
-                np.logical_and(
-                    np.logical_and(
-                        self.table['x_int'] >= region['x0'],
-                        self.table['x_int'] <= region['x1']),
-                    np.logical_and(
-                        self.table['y_int'] >= region['y0'],
-                        self.table['y_int'] <= region['y1'])
-                )
-            )[0]
-            print('found', len(idx), 'stars within region')
-            print('making catalog from table')
-            fits_table = self.table[idx]
-            fits_table.pprint()
-            # fits_table.meta['']
-            if 'spinbin_output_fh' in fits_table.meta.keys():
-                del fits_table.meta['spinbin_output_fh']
-            print('writing catalog to disc')
-            fits_table.write(catalog_fh, format='fits')
-            print('adding row to record table')
-            row = [region['halo'], region['name'], len(idx), fits_table['mact'].sum(),
-                   region['x0'], region['x1'], region['y0'], region['y1'],
-                   fits_table['feh'].min(), fits_table[
-                'feh'].mean(), fits_table['feh'].max(),
-                fits_table['age'].min(), fits_table['age'].mean(), fits_table['age'].max()]
-            record_table.add_row(row)
-            print(region['name'], 'done\n')
+                if not os.path.isdir(catalog_dir):
+                    print('making catalog directory')
+                    os.mkdir(catalog_dir)
+                    print(catalog_dir)
+                else:
+                    print('catalog directory exists')
+                    print('contents:')
+                    for f in os.listdir(catalog_dir):
+                        print('  --> ', f)
 
-        print('writing record log text file')
-        for halo in record_table['halo']:
-            table_fh = os.path.join(self.catalog_dir, halo, 'recordtable.txt')
-            with open(table_fh, 'w') as record_text:
-                for line in record_table.pformat(max_width=200):
-                    record_text.write(line + '\n')
+                print('making catalog file handle')
+                catalog_fh = region['name'] + self.catalog_extention
+                catalog_fh = os.path.join(catalog_dir, catalog_fh)
+                print(catalog_fh)
+                if os.path.isfile(catalog_fh):
+                    print('catalog exists')
+                    try:
+                        number = '_0' + \
+                            str(int(catalog_fh.split('.')[-2][-2:]) + 1)
+                    except:
+                        number = '_01'
+                    # TODO - ask to overwrite existing data
+                    # ===============================================================================
+                    # TODO
+                    catalog_fh = os.path.join(
+                        catalog_dir, region['name'] + number + self.catalog_extention)
+                print('finding stars within region boundaries')
+                print('x0:', region['x0'])
+                print('x1:', region['x1'])
+                print('y0:', region['y0'])
+                print('y1:', region['y1'])
+                idx = np.nonzero(
+                    np.logical_and(
+                        np.logical_and(
+                            self.table['x_int'] >= region['x0'],
+                            self.table['x_int'] <= region['x1']),
+                        np.logical_and(
+                            self.table['y_int'] >= region['y0'],
+                            self.table['y_int'] <= region['y1'])
+                    )
+                )[0]
+                print('found', len(idx), 'stars within region')
+                print('making catalog from table')
+                fits_table = self.table[idx]
+                fits_table.pprint()
+                # fits_table.meta['']
+                if 'spinbin_output_fh' in fits_table.meta.keys():
+                    del fits_table.meta['spinbin_output_fh']
+                print('writing catalog to disc')
+                fits_table.write(catalog_fh, format=self.catalog_extention[
+                                 1:], overwrite=True)
+                print('adding row to record table')
+                row = [region['halo'], region['name'], len(idx), fits_table['mact'].sum(),
+                       region['x0'], region['x1'], region['y0'], region['y1'],
+                       fits_table['feh'].min(), fits_table[
+                    'feh'].mean(), fits_table['feh'].max(),
+                    fits_table['age'].min(), fits_table['age'].mean(), fits_table['age'].max()]
+                record_table.add_row(row)
+                print(region['name'], 'done\n')
+
+            print('writing record log text file')
+            for halo in record_table['halo']:
+                table_fh = os.path.join(
+                    self.catalog_dir, halo, 'recordtable.txt')
+                with open(table_fh, 'w') as record_text:
+                    for line in record_table.pformat(max_width=200):
+                        record_text.write(line + '\n')
+
+            print('saving reference plot to local catalog file')
+            for plot_fh in os.listdir(self.plot_dir):
+                if plot_fh[:6] == halo:
+                    src = os.path.join(self.plot_dir, plot_fh)
+                    dest = os.path.join(self.catalog_dir, halo, plot_fh)
+                    print('moving', plot_fh)
+                    print('from:', src)
+                    print('to:', dest)
+                    shutil.move(src, dest)
+
         print('[catalog_makeall complete]')
 
     def region_remove(self):
         answer = tkSimpleDialog.askinteger(
             title='Remove Region',
             prompt='Which region do you want to delete?\nEnter the integer number as seen on the plot')
-        del self.regions[int(answer) - 1]
-        self.number_of_regions -= 1
+        del self.regions[str(self.halo)][int(answer) + 1]
+        self.regions[str(self.halo)][1] -= 1
         self.plot_halo()
         self.update_status_bar()
         print('remove region', answer)
 
     def regions_display(self):
-        region_list = ['region ' + str(i) for i in range(0, len(self.regions))]
+        region_list = [
+            'region ' + str(i) for i in range(0, len(self.regions[str(self.halo)]))]
 
     def make_plotwindow(self):
         print('[make_plotwindow]')
@@ -425,7 +546,7 @@ class App:
     def update_status_bar(self):
         print('[update_status_bar]')
         self.smsg_region = '[current regions: ' + \
-            str(self.number_of_regions) + ']    '
+            str(self.regions[str(self.halo)][1]) + ']    '
         self.smsg_status = self.smsg_region + self.smsg_mouse_xy + self.smsg_kpc_xy
         self.statusbar.set(self.smsg_status)
         print('[update_status_bar complete]')
@@ -500,8 +621,14 @@ class App:
         self.grid_fh = tkFileDialog.askopenfilename(
             initialdir=self.grid_dir,
             title="Select new halo grid file")
-        self.halo = os.path.split(self.grid_fh)[-1].split('_')[0]
+        self.halo = str(os.path.split(self.grid_fh)[-1].split('_')[0])
+        if not str(self.halo) in self.regions.keys():
+            print('starting new region dict for', self.halo)
+            self.regions[str(self.halo)] = [0, 0]
+
         self.grid = np.load(self.grid_fh)
+        self.grid_center_x = self.grid.shape[1] / 2.0
+        self.grid_center_y = self.grid.shape[0] / 2.0
         print(self.halo)
         # self.current_halo_bar.set(str(self.halo))
         self.master.title('StarCat - ' + self.halo)

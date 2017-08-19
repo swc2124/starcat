@@ -3,29 +3,25 @@ from __future__ import division, print_function
 
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
-
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.backend_bases import key_press_handler
-from matplotlib.figure import Figure
+import matplotlib as mpl
+mpl.use('TkAgg')
 
 import matplotlib.pyplot as plt
 
 def kpc_to_degree(d_mpc):
-    d = 1.0
+    d = 1e3 # Kpc
     D = d_mpc * 1e6
     degree_mod = 180.0 / np.pi
     return degree_mod * (d / D)
 
 def kpc_to_arcmin(d_mpc):
-    d = 1.0
+    d = 1e3 # Kpc
     D = d_mpc * 1e6
     arcmin_mod = (60.0 * 180.0) / np.pi
     return arcmin_mod * (d / D)
 
 def kpc_to_arcsec(d_mpc):
-    d = 1.0
+    d = 1e3 # Kpc
     D = d_mpc * 1e6
     arcsec_mod = 206264.80624709636 #(3600.0 * 180.0) / np.pi
     return arcsec_mod * (d / D)
@@ -43,22 +39,74 @@ def make_box(session):
         session.region_size  ize of box in grid units
 
     '''
-    # split the length
-    segment = session.region_size * 0.5
-    xbox = (session.current_x - segment, session.current_x + segment)
-    ybox = (session.current_y + segment, session.current_y - segment)
-    session.number_of_regions += 1
-    session.number_of_regions_tot += 1
-    new_region = {}
-    new_region['halo'] = session.halo
-    new_region['name'] = 'R ' + str(session.number_of_regions_tot)
-    new_region['box'] = (xbox, ybox)
-    new_region['x0'] = xbox[0] + 300
-    new_region['x1'] = xbox[1] + 300
-    new_region['y0'] = ybox[1] + 300
-    new_region['y1'] = ybox[0] + 300
-    session.regions.append(new_region)
+    # 
+    if str(session.halo) in session.regions.keys():
+        session.regions[str(session.halo)][0]  += 1
+        session.regions[str(session.halo)][1]  += 1
+    else:
+        session.regions[str(session.halo)] = [0, 0]
+
+    # ratio of arcsec/Kpc
+    arcsec_per_kpc_ratio = kpc_to_arcsec(session.distance)
+    print('arcsec_per_kpc_ratio:', arcsec_per_kpc_ratio)
+
+    # the inverse is Kpc/arcsec
+    kpc_per_arcsec_ratio = 1.0 / arcsec_per_kpc_ratio
+    print('kpc_per_arcsec_ratio:', kpc_per_arcsec_ratio)
+
+    # this is how many x,y pixels there are
+    xpix, ypix = session.region_ccd_size
+    print('xpix, ypix: ', xpix, ypix)
+
+    # to get arcsecs we multiply Npixel (xpix) * 0.11 arcsec/pixel (region_pixel_size)
+    detector_arcsec_x = xpix * session.region_pixel_size
+    detector_arcsec_y = ypix * session.region_pixel_size
+    print('detector_arcsec_x:', detector_arcsec_x)
+    print('detector_arcsec_y:', detector_arcsec_y)
+
+    # to get Kpc for the grid we divide by kpc_to_arcsec()
+    # so its arcsec * Kpc/arcsec
+    detector_kpc_x = detector_arcsec_x *  kpc_per_arcsec_ratio
+    detector_kpc_y = detector_arcsec_y *  kpc_per_arcsec_ratio
+    print('detector_kpc_x:', detector_kpc_x)
+    print('detector_kpc_y:', detector_kpc_y)
+
+    # half distance
+    segment_x = detector_kpc_x * 0.5
+    segment_y = detector_kpc_y * 0.5
+    print('segment_x:', segment_x)
+    print('segment_y:', segment_y)
+
+    # current x, y locations of the mouse click (center of the detector)
+    x_now = session.current_x
+    y_now = session.current_y
+    print('x_now:', x_now)
+    print('y_now:', y_now)
+
+    # (x0, x1) & (y0, y1)
+    # x and y are backward in tkinter
+    # that's why the signs are opposite 
+    xbox = (x_now - segment_x, x_now + segment_x)
+    ybox = (y_now + segment_y, y_now - segment_y)
+    print('xbox:', xbox)
+    print('ybox:', ybox)
     
+    # make a new region dict and append it to this halo's list of regions
+    new_region = {}
+    new_region['halo'] = str(session.halo)
+    new_region['name'] = 'R ' + str(session.regions[str(session.halo)][0])
+    new_region['box'] = (xbox, ybox)
+
+    # need to offset for the grid
+    # the grid is 600 x 600 so we add 1/2 i.e. 300 (grid_center_x, grid_center_y)
+    new_region['x0'] = xbox[0] + session.grid_center_x
+    new_region['x1'] = xbox[1] + session.grid_center_x
+    new_region['y0'] = ybox[1] + session.grid_center_y
+    new_region['y1'] = ybox[0] + session.grid_center_y
+    
+    # append this new region dict to this halo's list of regions
+    session.regions[str(session.halo)].append(new_region)
+
 
 
 def fix_rslice(grid, d_mpc=4.0, unit='kpc', rslices=[4]):
@@ -188,6 +236,15 @@ def place_box(_ax, _box, _boxid):
 
     # end of function =====================================================
 
+def save_colorbar(_vmin, _vmax, _label, _fh, _cmap=mpl.cm.bone_r):
+    fig = plt.figure(figsize=(8, 1))
+    ax1 = fig.add_axes([0.05, 0.80, 0.9, 0.15])
+    norm = mpl.colors.Normalize(vmin=_vmin, vmax=_vmax)
+    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=_cmap,
+                                    norm=norm,
+                                    orientation='horizontal')
+    cb1.set_label(_label)
+    fig.savefig(_fh)
 
 def plot_halo(session):
     '''
@@ -201,7 +258,7 @@ def plot_halo(session):
     ax = fig.add_subplot(111)
 
     # set titles & labels for axes & plot
-    ax_title = session.halo + ' ' + str(session.distance) + ' Mpc ' + session.filter
+    ax_title = str(session.halo) + ' ' + str(session.distance) + ' Mpc ' + session.filter
     ax.set_title(ax_title)
     ax.set_xlabel(session.plot_units, fontsize=7)
     ax.set_ylabel(session.plot_units, fontsize=7)
@@ -213,35 +270,43 @@ def plot_halo(session):
         fsize = 10
         lwidth = 45
         c_lwidth = 1.25
+        mod = 1.0
     elif session.plot_units == 'arcmin':
         _levels = None
         clabel_frmt = '%s arcmin'
         fsize = 10
         lwidth = 45
         c_lwidth = .8
+        mod = np.square(kpc_to_arcmin(session.distance))
     elif session.plot_units == 'arcsec':
         _levels = None
         clabel_frmt = '%s arcsec'
         fsize = 10
         lwidth = 45
         c_lwidth = .8
+        mod = np.square(kpc_to_arcsec(session.distance))
     elif session.plot_units == 'degree':
         _levels = None
         clabel_frmt = '%s deg'
         fsize = 10
         lwidth = 45
         c_lwidth = 1.25
+        mod = np.square(kpc_to_degree(session.distance))
     # make grid filehandel (fh) & load grid
     # fill radius grid slice for contour
     print('correcting radius in ', session.plot_units, 'units')
+    print('distance Mpc:', session.distance)
     grid = fix_rslice(session.grid, session.distance, session.plot_units)
 
     # plot heat map
+    _vmin = 1.0
+    _vmax = 4.2
+    _cmap = plt.cm.bone_r
     print('making heat map')
-    ax.pcolormesh(np.log10(grid[8:, :-3, 0]),
-                  cmap=plt.cm.bone_r,
-                  vmin=1.0,
-                  vmax=4.5)
+    hm = ax.pcolormesh(np.log10(grid[8:, :-3, 0] * mod),
+                  cmap=_cmap,
+                  vmin=_vmin,
+                  vmax=_vmax)
 
     # plot contour map to overlay on heat map
     print('making contour plot')
@@ -274,9 +339,10 @@ def plot_halo(session):
     ax.set_ylim([lim1, lim0])
 
     # plot region boxes for each region
-    if session.regions:
+    if str(session.halo) in session.regions.keys():
         print('setting boxes')
-        for region in session.regions:
+        for region in session.regions[str(session.halo)][2:]:
+
             #print(box)
             #ax = place_box(ax, box, i)
             print('------------------')
@@ -371,6 +437,11 @@ def plot_halo(session):
     plot_fh = session.plot_fh
     print('saving plot now to :', plot_fh)
     fig.savefig(plot_fh, dpi=session.plot_dpi)
+    _label = 'nstars / ' + session.plot_units + '^2'
+    _fh = os.path.join(session.plot_dir, session.halo + '_cb' + session.plot_extention)
+    session.plot_cb_fh = _fh
+    session.plot_has_cb = True
+    save_colorbar(_vmin, _vmax, _label, _fh)
     session.has_plot = True
     print('done')
 
