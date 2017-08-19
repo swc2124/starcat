@@ -121,7 +121,7 @@ def place_box(_ax, _box, _boxid):
                linewidth=lwidth)
 
 
-def fix_rslice(grid, rslices=[14]):
+def fix_rslice(grid, rslices=[4]):
 
     # (1.0 * Config.getint('grid_options', 'size'))
     ratio = (2.0 * 300.0 / 600.0)
@@ -173,7 +173,7 @@ def plot_halo(halo_fh, pgrm_data=program_data):
     ax.pcolormesh(np.log10(grid[8:, :-3, 0]),
                   cmap=plt.cm.bone_r, vmin=1.0, vmax=4.5)
     print(' 		making contour plot')
-    cp = ax.contour(grid[:, :, 14], [50, 100, 150, 300], colors='k',
+    cp = ax.contour(grid[:, :, 4], [50, 100, 150, 300], colors='k',
                     linewidths=1.5, alpha=.25, linestyles='dashed')
     print(' 		setting contour labels')
     cl = ax.clabel(cp, [50, 100, 150, 300], inline=1, fmt='%s Kpc',
