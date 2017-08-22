@@ -5,8 +5,10 @@ Make stellar catalogs from simulated halos.
 1. Clone this repo onto your local machine.
 2. Enter into the directory starcat/starcat
 3. run "python starcat_gui.py"
-4. From the top menu select Halo-Select Halo.
-5. 
+4. From the top menu select Halo>Select Halo.
+    ![Screenshot](data/readme_png/halomenu.png)
+5. Right-click to select regions.
+6. From the top menu select Catalog>Make Catalogs
 
 # File system
         starcat
@@ -83,13 +85,7 @@ Make stellar catalogs from simulated halos.
         ├── setup.py
         └── starcat
            ├── __init__.py
-           ├── __init__.pyc
-           ├── catalogs
            ├── gui_plotlib.py
-           ├── gui_plotlib.pyc
-           ├── plots
            ├── printlib.py
-           ├── saved
            ├── starcat_gui.py
-           ├── starcat_gui.pyc
            └── starcat_terminal.py
