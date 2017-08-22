@@ -281,7 +281,7 @@ class App:
             menu=self.catalog_menu)
 
         # right click menu
-        self.rightclick = Menu(self.plotwindow, tearoff=0)
+        self.rightclick = Menu(self.plotwindow, tearoff=1)
         self.rightclick.add_command(
             label='Select Region',
             command=self.place_region)

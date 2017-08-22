@@ -1,5 +1,6 @@
 # Welcome to Starcat
 Make stellar catalogs from simulated halos.
+![Screenshot](data/readme_png/main.png)
 
 # Getting started
 ## 1. Clone this repo onto your local machine.
