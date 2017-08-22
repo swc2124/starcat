@@ -3,51 +3,30 @@ Make stellar catalogs from simulated halos.
 
 # Getting started
 ## Clone this repo onto your local machine.
-    
-    ![Screenshot](data/readme_png/clone.png)
-
-
+![Screenshot](data/readme_png/clone.png)
 
 ## Enter into the directory starcat/starcat
 ## run "python starcat_gui.py"
 ## From the top menu select Halo>Select Halo.
-    
-    ![Screenshot](data/readme_png/halomenu.png)
-
+![Screenshot](data/readme_png/halomenu.png)
 
 ## Select a halo grid file.
-    
-    ![Screenshot](data/readme_png/selecthalo.png)
-
-
+![Screenshot](data/readme_png/selecthalo.png)
 
 ## From the top menu select Plot>Set Units to set plot units & Replot.
-    
-    ![Screenshot](data/readme_png/selectunits.png)
-
-
+![Screenshot](data/readme_png/selectunits.png)
 
 ## You can alo select the detector from Menu>Region>Detectors.
-    
-    ![Screenshot](data/readme_png/detector.png)
-
-
+![Screenshot](data/readme_png/detector.png)
 
 ## Over the halo plot, right-click and select region:
-    
-    ![Screenshot](data/readme_png/selectregion.png)
-
-
+![Screenshot](data/readme_png/selectregion.png)
 
 ## Once you have all your regions selected, go to Menu>Calalogs>Make Catalogs.
+![Screenshot](data/readme_png/makecats.png)
+
+## File system
     
-    ![Screenshot](data/readme_png/makecats.png)
-
-
-
-
-
-# File system
         starcat
         ├── .gitignore
         ├── .pypirc
