@@ -506,7 +506,7 @@ def plot_halo(session):
     plot_fh = session.plot_fh
     print('saving plot now to :', plot_fh)
     fig.savefig(plot_fh, dpi=session.plot_dpi)
-    _label = 'nstars / ' + session.plot_units + '^2'
+    _label = 'Log(nstars / ' + session.plot_units + '^2)'
     _fh = os.path.join(session.plot_dir, session.halo +
                        '_cb' + session.plot_extention)
     session.plot_cb_fh = _fh
