@@ -38,14 +38,14 @@ Make stellar catalogs from simulated halos.
      
      catalogs/
         |
-        ├── halo08/
+        ├── halo08/                         <-- each halo's output directory
         |     |
-        │     ├── halo08.png
-        │     ├── halo08_cb.png
-        │     ├── R 1.fits
+        │     ├── halo08.png                <-- main plot with regions marked
+        │     ├── halo08_cb.png             <-- color bar
+        │     ├── R 1.fits                  <-- fits table for region
         │     ├── R 2.fits
         │     ├── R 3.fits
-        │     └── recordtable.txt
+        │     └── recordtable.txt           <-- txt table with basic stats
         |
         ├── halo10/
         |     |
