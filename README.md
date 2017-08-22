@@ -1,7 +1,7 @@
 # Welcome to Starcat
 Make stellar catalogs from simulated halos.
 ![Screenshot](data/readme_png/main.png)
-
+ 
 # Getting started
 ## 1. Clone this repo onto your local machine.
 ![Screenshot](data/readme_png/clone.png)
@@ -38,9 +38,40 @@ Make stellar catalogs from simulated halos.
 ## 9. Once you have all your regions selected, go to Menu>Calalogs>Make Catalogs.
 ![Screenshot](data/readme_png/makecats.png)
 
-## File system
+## 10. Example output
+     
+     catalogs/
+        |
+        ├── halo08/
+        |     |
+        │     ├── halo08.png
+        │     ├── halo08_cb.png
+        │     ├── R 1.fits
+        │     ├── R 2.fits
+        │     ├── R 3.fits
+        │     └── recordtable.txt
+        |
+        ├── halo10/
+        |     |
+        │     ├── halo10.png
+        │     ├── halo10_cb.png
+        │     ├── R 1.fits
+        │     ├── R 2.fits
+        │     ├── R 3.fits
+        │     └── recordtable.txt
+        |
+        └── halo17/
+              |
+              ├── halo17.png
+              ├── halo17_cb.png
+              ├── R 1.fits
+              ├── R 2.fits
+              ├── R 3.fits
+              └── recordtable.txt
+
+## Complete file system
     
-        starcat
+     starcat
         ├── .gitignore
         ├── .pypirc
         ├── data
