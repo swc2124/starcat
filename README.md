@@ -1,4 +1,4 @@
-# Welcom to Starcat
+# Welcome to Starcat
 Make stellar catalogs from simulated halos.
 
 # Getting started
