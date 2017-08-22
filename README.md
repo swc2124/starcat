@@ -4,9 +4,20 @@ Make stellar catalogs from simulated halos.
 # Getting started
 ## Clone this repo onto your local machine.
 ![Screenshot](data/readme_png/clone.png)
+        
+        
+        git clone https://github.com/swc2124/starcat.git
+        
+
 
 ## Enter into the directory starcat/starcat
+    
+    cd starcat/starcat
+
 ## run "python starcat_gui.py"
+    
+    python starcat_gui.py
+
 ## From the top menu select Halo>Select Halo.
 ![Screenshot](data/readme_png/halomenu.png)
 
