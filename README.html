@@ -1015,7 +1015,8 @@ body .markdown-body
   }
 }
 </style><title>README</title></head><body><article class="markdown-body"><h1 id="welcome-to-starcat"><a name="user-content-welcome-to-starcat" href="#welcome-to-starcat" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Welcome to Starcat</h1>
-<p>Make stellar catalogs from simulated halos.</p>
+<p>Make stellar catalogs from simulated halos.<br />
+<img alt="Screenshot" src="///C://Users/swc21/GitHub/starcat/data/readme_png/main.png" /></p>
 <h1 id="getting-started"><a name="user-content-getting-started" href="#getting-started" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Getting started</h1>
 <h2 id="1-clone-this-repo-onto-your-local-machine"><a name="user-content-1-clone-this-repo-onto-your-local-machine" href="#1-clone-this-repo-onto-your-local-machine" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>1. Clone this repo onto your local machine.</h2>
 <p><img alt="Screenshot" src="///C://Users/swc21/GitHub/starcat/data/readme_png/clone.png" /></p>
@@ -1037,10 +1038,39 @@ body .markdown-body
 <p><img alt="Screenshot" src="///C://Users/swc21/GitHub/starcat/data/readme_png/detector.png" /></p>
 <h2 id="8-over-the-halo-plot-right-click-and-select-region"><a name="user-content-8-over-the-halo-plot-right-click-and-select-region" href="#8-over-the-halo-plot-right-click-and-select-region" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>8. Over the halo plot, right-click and select region:</h2>
 <p><img alt="Screenshot" src="///C://Users/swc21/GitHub/starcat/data/readme_png/selectregion.png" /></p>
-<h2 id="9-once-you-have-all-your-regions-selected-go-to-menucalalogsmake-catalogs"><a name="user-content-9-once-you-have-all-your-regions-selected-go-to-menucalalogsmake-catalogs" href="#9-once-you-have-all-your-regions-selected-go-to-menucalalogsmake-catalogs" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>9. Once you have all your regions selected, go to Menu&gt;Calalogs&gt;Make Catalogs.</h2>
 <p><img alt="Screenshot" src="///C://Users/swc21/GitHub/starcat/data/readme_png/makecats.png" /></p>
-<h2 id="file-system"><a name="user-content-file-system" href="#file-system" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>File system</h2>
-<pre><code>    starcat
+<h2 id="10-example-output"><a name="user-content-10-example-output" href="#10-example-output" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>10. Example output</h2>
+<pre><code> catalogs/
+    |
+    ├── halo08/                         &lt;-- each halo's output directory
+    |     |
+    │     ├── halo08.png                &lt;-- main plot with regions marked
+    │     ├── halo08_cb.png             &lt;-- color bar
+    │     ├── R 1.fits                  &lt;-- fits table for region
+    │     ├── R 2.fits
+    │     ├── R 3.fits
+    │     └── recordtable.txt           &lt;-- txt table with basic stats
+    |
+    ├── halo10/
+    |     |
+    │     ├── halo10.png
+    │     ├── halo10_cb.png
+    │     ├── R 1.fits
+    │     ├── R 2.fits
+    │     ├── R 3.fits
+    │     └── recordtable.txt
+    |
+    └── halo17/
+          |
+          ├── halo17.png
+          ├── halo17_cb.png
+          ├── R 1.fits
+          ├── R 2.fits
+          ├── R 3.fits
+          └── recordtable.txt
+</code></pre>
+<h2 id="complete-file-system"><a name="user-content-complete-file-system" href="#complete-file-system" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Complete file system</h2>
+<pre><code> starcat
     ├── .gitignore
     ├── .pypirc
     ├── data
