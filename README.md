@@ -64,6 +64,7 @@ Make stellar catalogs from simulated halos.
               ├── R 2.fits
               ├── R 3.fits
               └── recordtable.txt
+               
 
 ## Complete file system
     
