@@ -2,8 +2,8 @@
 Make stellar catalogs from simulated halos.
 ![Screenshot](data/readme_png/main.png)
  
-#\nGetting started
-\n## 1. Clone this repo onto your local machine.
+# Getting started
+## 1. Clone this repo onto your local machine.
 !Screenshot](data/readme_png/clone.png)
         
         
@@ -64,7 +64,7 @@ Make stellar catalogs from simulated halos.
               ├── R 2.fits
               ├── R 3.fits
               └── recordtable.txt
-               
+
 
 ## Complete file system
     
