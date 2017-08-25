@@ -26,7 +26,7 @@ Make stellar catalogs from simulated halos.
 ## 6. From the top menu select Plot>Set Units to set plot units & Replot.
 ![Screenshot](data/readme_png/selectunits.png)
 
-## 7. You can alo select the detector from Menu>Region>Detectors.
+## 7. You can also select the detector from Menu>Region>Detectors.
 ![Screenshot](data/readme_png/detector.png)
 
 ## 8. Over the halo plot, right-click and select region:
@@ -67,21 +67,12 @@ Make stellar catalogs from simulated halos.
 
 ## Complete file system
     
-     starcat
+     starcat/
         ├── .gitignore
         ├── .pypirc
-        ├── data
-        │   ├── catalogs
-        │   │   └── Julianne
-        │   │       └── Halo08_catalogs
-        │   │           ├── halo08_cmd.png
-        │   │           ├── halo08_ebf_and_dat_regions.png
-        │   │           ├── halo08_Region_1.fits
-        │   │           ├── halo08_Region_2.fits
-        │   │           ├── halo08_Region_3.fits
-        │   │           ├── halo08_Region_4.fits
-        │   │           └── halo08_Region_info.txt
-        │   ├── grids
+        ├── data/
+        │   ├── catalogs/
+        │   ├── grids/
         │   │   ├── halo02_4.0Mpc_h158_grid.npy
         │   │   ├── halo05_4.0Mpc_h158_grid.npy
         │   │   ├── halo08_4.0Mpc_h158_grid.npy
@@ -92,9 +83,9 @@ Make stellar catalogs from simulated halos.
         │   │   ├── halo15_4.0Mpc_h158_grid.npy
         │   │   ├── halo17_4.0Mpc_h158_grid.npy
         │   │   └── halo20_4.0Mpc_h158_grid.npy
-        │   ├── plots
-        │   ├── saved
-        │   └── tables
+        │   ├── plots/
+        │   ├── saved/
+        │   └── tables/
         │       ├── halo02_4.0Mpc_CMD_table.hdf5
         │       ├── halo02_4.0Mpc_h158_table.hdf5
         │       ├── halo02_4.0Mpc_pxpy_table.hdf5
@@ -130,7 +121,7 @@ Make stellar catalogs from simulated halos.
         │       └── testtable.txt
         ├── LICENSE.txt
         ├── MANIFEST.in
-        ├── notebooks
+        ├── notebooks/
         │   ├── FileTreePrinter.ipynb
         │   ├── heatmap selector.ipynb
         │   ├── JobQueue.ipynb
@@ -139,7 +130,7 @@ Make stellar catalogs from simulated halos.
         ├── README.md
         ├── README.rst
         ├── setup.py
-        └── starcat
+        └── starcat/
            ├── __init__.py
            ├── gui_plotlib.py
            ├── printlib.py
