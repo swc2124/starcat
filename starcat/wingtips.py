@@ -1,32 +1,53 @@
 #! /usr/bin/env python
+'''WFIRST Infrared Nearby Galaxies Test Image Product Simulator.
+Produces input files for the WFIRST STIPS simulator
+
+[description]
 '''
-WFIRST Infrared Nearby Galaxies Test Image Product Simulator.
-Produces input files for the WFIRTS STIPS simulator.
-'''
-import time
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import os
+
+from builtins import int
+from io import open
+
 import numpy as np
+import time
+
 from astropy import wcs
-from astropy.io import fits
 from astropy.io import ascii as astro_ascii
+from astropy.io import fits
 from astropy.table import Table
 
-class WingTips:
+import starcat as _sc
 
+
+class WingTips:
     '''
-    WFIRST Infrared Nearby Galaxies Test Image Product Simulator.
-    Produces input files for the WFIRTS STIPS simulator.
+    WFIRST Infrared Nearby Galaxies Test Image Product Simulator
+    Produces input files for the WFIRST STIPS simulator
     '''
 
     def __init__(self, infile=[], center=[0, 0]):
-        '''
-        Initialize WIngTips object.
+        '''[summary]
 
-        Keyword Arguments:
-            infile {list}   (default: {[]})
-            center {list}   (default: {[0})
+        [description]
 
-        Returns:
-            {NoneType}
+        Parameters
+        ----------
+        0] : {[type]}
+            [description]
+        infile : {list}, optional
+            [description] (the default is [], which [default_description])
+        center : {list}, optional
+            [description] (the default is [0, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         if len(infile) == 0:
             self.tab = np.array([])
@@ -36,43 +57,58 @@ class WingTips:
             self.tab = WingTips.read_stips(infile[0])
             if len(infile) > 1:
                 for i in range(1, len(infile)):
-                    _tab = WingTips.read_stips(infile[i])
-                    self.tab = np.vstack((self.tab, _tab))
+                    _row = WingTips.read_stips(infile[i])
+                    self.tab = np.vstack((self.tab, _row))
             center = WingTips.get_center(self.tab[:, 0], self.tab[:, 1])
         self.center = center
         self.n = self.tab.shape[0]
         self.infile = infile
         return None
 
+    ''' Strip coordinates from WingTips object '''
+
     def strip_radec(self, hasID=False):
-        '''
-        Strip coordinates from WIngTips object
+        '''[summary]
 
-        Keyword Arguments:
-            hasID {bool}   (default: {False})
+        [description]
 
-        Returns:
-            {NoneType}
+        Parameters
+        ----------
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _i = int(hasID)
         self.tab = np.delete(self.tab, [_i, _i + 1], 1)
         return None
 
+    ''' Attach given RA-DEC to WingTips object'''
+
     def attach_radec(self, radec, hasID=False):
-        '''
-        Attach given RA-DEC to WingTips object
+        '''[summary]
 
-        Arguments:
-            radec {[type]}
+        [description]
 
-        Keyword Arguments:
-            hasID {bool}     (default: {False})
+        Parameters
+        ----------
+        radec : {[type]}
+            [description]
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
 
-        Returns:
-            {NoneType}
+        Returns
+        -------
+        [type]
+            [description]
 
-        Raises:
-            ValueError
+        Raises
+        ------
+        ValueError
+            [description]
         '''
         if self.n != radec.shape[0]:
             raise ValueError('Number of RA-DEC does not match sources')
@@ -81,100 +117,125 @@ class WingTips:
         self.center = WingTips.get_center(radec[:, 0 + _i], radec[:, 1 + _i])
         return None
 
+    ''' Replace RA-DEC of WingTips object '''
+
     def replace_radec(self, radec, hasID=False):
-        '''
-        Replace RA-DEC of WIngTips object
+        '''[summary]
 
-        Arguments:
-            radec {[type]}
+        [description]
 
-        Keyword Arguments:
-            hasID {bool}     (default: {False})
+        Parameters
+        ----------
+        radec : {[type]}
+            [description]
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
 
-        Returns:
-            {NoneType}
+        Returns
+        -------
+        [type]
+            [description]
         '''
         self.strip_radec(hasID)
         self.attach_radec(radec, hasID)
         return None
 
-    def random_radec_for(self, other, shape=(4096, 4096), sample=False, n=0,
-                         hasID=False):
-        '''
-        Return random RA-DEC for given image or WingTips object
-        Optionally, specify center and image size desired
+    '''
+    Return random RA-DEC for given image or WingTips object
+    Optionally, specify center and image size desired
+    '''
 
-        Arguments:
-            other {[type]}
+    def random_radec_for(self, other, shape=(4096, 4096), sample=False, n=0, hasID=False):
+        '''[summary]
 
-        Keyword Arguments:
-            shape {tuple}    (default: {(4096, 4096)})
-            sample {bool}    (default: {False})
-            n {number}       (default: {0})
-            hasID {bool}     (default: {False})
+        [description]
 
-        Returns:
-            [type]
+        Parameters
+        ----------
+        other : {[type]}
+            [description]
+        shape : {tuple}, optional
+            [description] (the default is (4096, 4096), which [default_description])
+        sample : {bool}, optional
+            [description] (the default is False, which [default_description])
+        n : {number}, optional
+            [description] (the default is 0, which [default_description])
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _i = int(hasID)
         try:
             if other.endswith('.fits'):
                 return WingTips.random_radec(self.n, imfile=other)
         except AttributeError:
-            if ~sample:
+            if not sample:
                 return WingTips.random_radec(self.n, center=other.center)
-            elif not ~bool(n):
-                return WingTips.sample_radec(
-                    n=self.n,
-                    radec1=False,
-                    radec2=other.tab[:, _i:_i + 1])
+            elif not bool(n):
+                return WingTips.sample_radec(n=self.n, radec1=False, radec2=other.tab[:, _i:_i + 1])
             else:
-                return WingTips.sample_radec(
-                    n=n,
-                    radec1=self.tab[:, _i:_i + 1],
-                    radec2=other.tab[:, _i:_i + 1])
+                return WingTips.sample_radec(n=n, radec1=self.tab[:, _i:_i + 1], radec2=other.tab[:, _i:_i + 1])
+
+    ''' Merge two WingTips objects '''
 
     def merge_with(self, other, hasRADEC=True, hasID=False):
-        '''
-        Merge two WIngTips' class objects
+        '''[summary]
 
-        Arguments:
-            other {[type]}
+        [description]
 
-        Keyword Arguments:
-            hasRADEC {bool}   (default: {True})
-            hasID {bool}      (default: {False})
+        Parameters
+        ----------
+        other : {[type]}
+            [description]
+        hasRADEC : {bool}, optional
+            [description] (the default is True, which [default_description])
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
 
-        Returns:
-            {NoneType}
+        Returns
+        -------
+        [type]
+            [description]
 
-        Raises:
-            ValueError
+        Raises
+        ------
+        ValueError
+            [description]
         '''
         if self.tab.shape[1] != other.tab.shape[1]:
             raise ValueError('Number of columns does not match',
-                             self.tab.shape[1],
-                             other.tab.shape[1])
+                             self.tab.shape[1], other.tab.shape[1])
         self.tab = np.vstack((self.tab, other.tab))
         self.n = self.tab.shape[0]
         self.infile.append(other.infile)
         _i = int(hasID)
         if hasRADEC:
             self.center = WingTips.get_center(
-                self.tab[:, 0 + _i],
-                self.tab[:, 1 + _i])
+                self.tab[:, 0 + _i], self.tab[:, 1 + _i])
         return None
 
+    ''' Convert flux to surface brightness for sersic profile galaxies '''
+
     def flux_to_Sb(self, hasRADEC=True, hasID=False):
-        '''
-        Convert flux to surface brightness for sersic profile galaxies
+        '''[summary]
 
-        Keyword Arguments:
-            hasRADEC {bool}   (default: {True})
-            hasID {bool}      (default: {False})
+        [description]
 
-        Returns:
-            {NoneType}
+        Parameters
+        ----------
+        hasRADEC : {bool}, optional
+            [description] (the default is True, which [default_description])
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _i = int(hasID)
         if hasRADEC:
@@ -187,20 +248,30 @@ class WingTips:
         self.tab = np.insert(self.tab, _i, _s.T, 1)
         return None
 
-    def write_stips(self, outfile='temp.txt', hasID=False, hasCmnt=False,
-                    saveID=False, ipac=False):
-        '''
-        Write out a STIPS input file
+    ''' Write out a STIPS input file '''
 
-        Keyword Arguments:
-            outfile {str}    (default: {'temp.txt'})
-            hasID {bool}     (default: {False})
-            hasCmnt {bool}   (default: {False})
-            saveID {bool}    (default: {False})
-            ipac {bool}      (default: {False})
+    def write_stips(self, outfile='temp.txt', hasID=False, hasCmnt=False, saveID=False, ipac=False):
+        '''[summary]
 
-        Returns:
-            [type]
+        [description]
+
+        Parameters
+        ----------
+        outfile : {str}, optional
+            [description] (the default is 'temp.txt', which [default_description])
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
+        hasCmnt : {bool}, optional
+            [description] (the default is False, which [default_description])
+        saveID : {bool}, optional
+            [description] (the default is False, which [default_description])
+        ipac : {bool}, optional
+            [description] (the default is False, which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _tab = WingTips.get_tabular(self.tab, hasID, hasCmnt, saveID)
         _nms = ('id',  'ra',    'dec',   'flux',  'type',
@@ -212,40 +283,53 @@ class WingTips:
             astro_ascii.write(_t, outfile, format='ipac',
                               formats=dict(zip(_nms, _fmt)))
         else:
-            astro_ascii.write(_t, outfile,
-                              format='fixed_width',
-                              delimiter='',
-                              formats=dict(zip(_nms, _fmt)))
+            astro_ascii.write(_t, outfile, format='fixed_width',
+                              delimiter='', formats=dict(zip(_nms, _fmt)))
         return print('Wrote out %s \n' % outfile)
 
+    ''' Build a WingTips class object from scratch '''
     @staticmethod
-    def from_scratch(flux, ra=[], dec=[], center=[], ID=[], Type=[], n=[],
-                     re=[], phi=[], ratio=[], notes=[],
-                     outfile=''):
-        '''
-        Build a WingTips class object from scratch
+    def from_scratch(flux, ra=[], dec=[], center=[], ID=[], Type=[], n=[], re=[], phi=[], ratio=[], notes=[], outfile=''):
+        '''[summary]
 
-        Arguments:
-            flux {[type]}
+        [description]
 
-        Keyword Arguments:
-            ra {list}       (default: {[]})
-            dec {list}      (default: {[]})
-            center {list}   (default: {[]})
-            ID {list}       (default: {[]})
-            Type {list}     (default: {[]})
-            n {list}        (default: {[]})
-            re {list}       (default: {[]})
-            phi {list}      (default: {[]})
-            ratio {list}    (default: {[]})
-            notes {list}    (default: {[]})
-            outfile {str}   (default: {''})
+        Parameters
+        ----------
+        flux : {[type]}
+            [description]
+        ra : {list}, optional
+            [description] (the default is [], which [default_description])
+        dec : {list}, optional
+            [description] (the default is [], which [default_description])
+        center : {list}, optional
+            [description] (the default is [], which [default_description])
+        ID : {list}, optional
+            [description] (the default is [], which [default_description])
+        Type : {list}, optional
+            [description] (the default is [], which [default_description])
+        n : {list}, optional
+            [description] (the default is [], which [default_description])
+        re : {list}, optional
+            [description] (the default is [], which [default_description])
+        phi : {list}, optional
+            [description] (the default is [], which [default_description])
+        ratio : {list}, optional
+            [description] (the default is [], which [default_description])
+        notes : {list}, optional
+            [description] (the default is [], which [default_description])
+        outfile : {str}, optional
+            [description] (the default is '', which [default_description])
 
-        Returns:
-            [type]
+        Returns
+        -------
+        [type]
+            [description]
 
-        Raises:
-            ValueError
+        Raises
+        ------
+        ValueError
+            [description]
         '''
         _temp = WingTips()
         _temp.n = len(flux)
@@ -257,9 +341,7 @@ class WingTips:
                 radec = _temp.random_radec_for(_temp)
                 ra, dec = radec[:, 0], radec[:, 1]
         elif ((len(ra) == len(dec)) & (len(ra) > 0)):
-            _temp.center = WingTips.get_center(
-                np.array(ra),
-                np.array(dec))
+            _temp.center = WingTips.get_center(np.array(ra), np.array(dec))
         else:
             raise ValueError('Provide valid coordinate or center')
 
@@ -285,28 +367,35 @@ class WingTips:
         if outfile is '':
             return _temp
         else:
-            _temp.write_stips(outfile,
-                              hasID=bool(ID),
-                              hasCmnt=bool(notes),
-                              saveID=bool(ID))
+            _temp.write_stips(outfile, hasID=bool(
+                ID), hasCmnt=bool(notes), saveID=bool(ID))
             return None
 
+    '''
+    Read in a STIPS input file in astro_ascii format and
+    return corrsponding NumPy array
+    '''
     @staticmethod
     def read_stips(infile, getRADEC=True, getID=False, getCmnt=False):
-        '''
-        Read in a STIPS input file in ascii format and
-        return corresponding NumPy array
+        '''[summary]
 
-        Arguments:
-            infile {[type]}
+        [description]
 
-        Keyword Arguments:
-            getRADEC {bool}   (default: {True})
-            getID {bool}      (default: {False})
-            getCmnt {bool}    (default: {False})
+        Parameters
+        ----------
+        infile : {[type]}
+            [description]
+        getRADEC : {bool}, optional
+            [description] (the default is True, which [default_description])
+        getID : {bool}, optional
+            [description] (the default is False, which [default_description])
+        getCmnt : {bool}, optional
+            [description] (the default is False, which [default_description])
 
-        Returns:
-            [type]
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _tab = []
         _infile = astro_ascii.read(infile)
@@ -330,18 +419,23 @@ class WingTips:
 
         return np.array(_tab).T
 
+    ''' Return tabular lists for STIPS input file columns '''
     @staticmethod
     def get_tabular(_tab, hasID=False, hasCmnt=False, saveID=False):
-        '''
-        Return tabular lists for STIPS input file columns
+        '''[summary]
 
-        Arguments:
-            _tab {[type]}
+        [description]
 
-        Keyword Arguments:
-            hasID {bool}     (default: {False})
-            hasCmnt {bool}   (default: {False})
-            saveID {bool}    (default: {False})
+        Parameters
+        ----------
+        _tab : {[type]}
+            [description]
+        hasID : {bool}, optional
+            [description] (the default is False, which [default_description])
+        hasCmnt : {bool}, optional
+            [description] (the default is False, which [default_description])
+        saveID : {bool}, optional
+            [description] (the default is False, which [default_description])
         '''
         _i = int(hasID)
         if ~saveID:
@@ -350,49 +444,57 @@ class WingTips:
             _tab = np.hstack((_ID, _tab[:, _i:]))
         if ~hasCmnt:
             _cmnt = np.array(
-                np.repeat(
-                    np.array(['comment']), _tab.shape[0],), ndmin=2).T
+                np.repeat(np.array(['comment']), _tab.shape[0],), ndmin=2).T
             _tab = np.hstack((_tab, _cmnt))
-        return [_tab[:, 0].astype(float),
-                _tab[:, 1].astype(float),
-                _tab[:, 2].astype(float),
-                _tab[:, 3].astype(float),
-                _tab[:, 4],
-                _tab[:, 5].astype(float),
-                _tab[:, 6].astype(float),
-                _tab[:, 7].astype(float),
-                _tab[:, 8].astype(float),
-                _tab[:, 9]]
+        return [_tab[:, 0].astype(float), _tab[:, 1].astype(float), _tab[:, 2].astype(float),
+                _tab[:, 3].astype(float), _tab[:, 4], _tab[:, 5].astype(float),
+                _tab[:, 6].astype(float), _tab[:, 7].astype(float),
+                _tab[:, 8].astype(float), _tab[:, 9]]
 
+    ''' Build WCS coordinate system from scratch '''
     @staticmethod
-    def create_wcs(centers=[0, 0], crpix=[2048, 2048],
-                   cdelt=[-0.11 / 3600, 0.11 / 3600],
-                   cunit=['deg', 'deg'], ctype=['RA-TAN', 'DECTAN'],
-                   lonpole=180, latpole=24.333335, equinox=2000.0,
-                   radesys='ICRS'):
-        '''
-        Build WCS coordinate system from scratch
+    def create_wcs(centers=[0, 0], crpix=[2048, 2048], cdelt=[-0.11 / 3600, 0.11 / 3600], cunit=['deg', 'deg'],
+                   ctype=['RA---TAN', 'DEC--TAN'], lonpole=180, latpole=24.333335,
+                   equinox=2000.0, radesys='ICRS'):
+        '''[summary]
 
-        Arguments:
-            0] {[type]}
-            2048] {[type]}
-            0.11 / 3600] {[type]}
-            'deg'] {[type]}
-            'DECTAN'] {[type]}
+        [description]
 
-        Keyword Arguments:
-            centers {list}          (default: {[0})
-            crpix {list}            (default: {[2048})
-            cdelt {list}            (default: {[-0.11 / 3600})
-            cunit {list}            (default: {['deg'})
-            ctype {list}            (default: {['RA-TAN'})
-            lonpole {number}        (default: {180})
-            latpole {number}        (default: {24.333335})
-            equinox {number}        (default: {2000.0})
-            radesys {str}           (default: {'ICRS'})
+        Parameters
+        ----------
+        0] : {[type]}
+            [description]
+        2048] : {[type]}
+            [description]
+        0.11 / 3600] : {[type]}
+            [description]
+        'deg'] : {[type]}
+            [description]
+        'DEC--TAN'] : {[type]}
+            [description]
+        centers : {list}, optional
+            [description] (the default is [0, which [default_description])
+        crpix : {list}, optional
+            [description] (the default is [2048, which [default_description])
+        cdelt : {list}, optional
+            [description] (the default is [-0.11 / 3600, which [default_description])
+        cunit : {list}, optional
+            [description] (the default is ['deg', which [default_description])
+        ctype : {list}, optional
+            [description] (the default is ['RA---TAN', which [default_description])
+        lonpole : {number}, optional
+            [description] (the default is 180, which [default_description])
+        latpole : {number}, optional
+            [description] (the default is 24.333335, which [default_description])
+        equinox : {number}, optional
+            [description] (the default is 2000.0, which [default_description])
+        radesys : {str}, optional
+            [description] (the default is 'ICRS', which [default_description])
 
-        Returns:
-            [type]
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _w = wcs.WCS()
         _w.wcs.cdelt = cdelt
@@ -406,36 +508,50 @@ class WingTips:
         _w.wcs.equinox = equinox
         return _w
 
+    ''' Return coordinate system for given image file'''
     @staticmethod
     def read_wcs(imfile):
-        '''
-        Return coordinate system for given image file'
+        '''[summary]
 
-        Arguments:
-            imfile {[type]}
+        [description]
 
-        Returns:
-            [type]
+        Parameters
+        ----------
+        imfile : {[type]}
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         print('Getting coordinates from %s \n' % imfile)
         return wcs.WCS(fits.open(imfile)[1].header)
 
+    ''' Return 'n' random radec for given image file or coordinate list '''
     @staticmethod
     def random_radec(n=10, center=[0, 0], shape=(4096, 4096), imfile=''):
-        '''
-        Return 'n' random radec for given image file or coordinate list
+        '''[summary]
 
-        Arguments:
-            0] {[type]}
+        [description]
 
-        Keyword Arguments:
-            n {number}      (default: {10})
-            center {list}   (default: {[0})
-            shape {tuple}   (default: {(4096, 4096)})
-            imfile {str}    (default: {''})
+        Parameters
+        ----------
+        0] : {[type]}
+            [description]
+        n : {number}, optional
+            [description] (the default is 10, which [default_description])
+        center : {list}, optional
+            [description] (the default is [0, which [default_description])
+        shape : {tuple}, optional
+            [description] (the default is (4096, 4096), which [default_description])
+        imfile : {str}, optional
+            [description] (the default is '', which [default_description])
 
-        Returns:
-            [type]
+        Returns
+        -------
+        [type]
+            [description]
         '''
         _xy = np.random.rand(n, 2) * shape
         if imfile is not '':
@@ -444,20 +560,30 @@ class WingTips:
             _w = WingTips.create_wcs(center)
         return _w.wcs_pix2world(_xy, 1)
 
+    '''
+    Return a random sample of 'n' RA-DEC coordinates from 'radec2'
+    If radec1 is specified, then replace 'n' radom coordinates
+    in 'radec1' with random sample from 'radec2'
+    '''
     @staticmethod
     def sample_radec(n=10, radec1=False, radec2=[]):
-        '''
-        Return a random sample of 'n' RA-DEC coordinates from 'radec2'
-        If radec1 is specified, then replace 'n' radom coordinates
-        in 'radec1' with random sample from 'radec2'
+        '''[summary]
 
-        Keyword Arguments:
-            n {number}      (default: {10})
-            radec1 {bool}   (default: {False})
-            radec2 {list}   (default: {[]})
+        [description]
 
-        Returns:
-            [type]
+        Parameters
+        ----------
+        n : {number}, optional
+            [description] (the default is 10, which [default_description])
+        radec1 : {bool}, optional
+            [description] (the default is False, which [default_description])
+        radec2 : {list}, optional
+            [description] (the default is [], which [default_description])
+
+        Returns
+        -------
+        [type]
+            [description]
         '''
         in2 = np.random.randint(0, radec2.shape[0], n)
         if ~radec1:
@@ -467,35 +593,49 @@ class WingTips:
             radec1[in1, :] = radec2[in2, :]
             return radec1
 
+    ''' Return mean of RA-DEC positions given '''
     @staticmethod
     def get_center(ra, dec):
-        '''
-        Return mean of RA-DEC positions given
+        '''[summary]
 
-        Arguments:
-            ra {[type]}
-            dec {[type]}
+        [description]
+
+        Parameters
+        ----------
+        ra : {[type]}
+            [description]
+        dec : {[type]}
+            [description]
         '''
         return [ra.astype(float).mean(), dec.astype(float).mean()]
 
+    '''
+    Convert mags to WFI instrument counts
+    Default is apparent AB mags
+    Specify 'dist' if absolute mags
+    Specify AB_Vega if Vega mags
+    '''
     @staticmethod
     def get_counts(mag, ZP, dist=0, AB_Vega=0):
-        '''
-        Convert mags to WFI instrument counts
-        Default is apparent AB mags
-        Specify 'dist' if absolute mags
-        Specify AB_Vega if Vega mags
+        '''[summary]
 
-        Arguments:
-            mag {[type]}
-            ZP {[type]}
+        [description]
 
-        Keyword Arguments:
-            dist {number}      (default: {0})
-            AB_Vega {number}   (default: {0})
+        Parameters
+        ----------
+        mag : {[type]}
+            [description]
+        ZP : {[type]}
+            [description]
+        dist : {number}, optional
+            [description] (the default is 0, which [default_description])
+        AB_Vega : {number}, optional
+            [description] (the default is 0, which [default_description])
 
-        Returns:
-            number
+        Returns
+        -------
+        number
+            [description]
         '''
         if bool(dist):
             print('\nDistance is d = %4.2f Mpc\n' % dist)

@@ -1,13 +1,17 @@
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
+
 from time import sleep
 
-import matplotlib.pyplot as plt
 import ebf
+import matplotlib.pyplot as plt
 import numpy as np
 
-from c_functions import bin as _bin, integerize as _int
+from c_functions import bin as _bin
+from c_functions import integerize as _int
 
 import printlib as plib
 '''
