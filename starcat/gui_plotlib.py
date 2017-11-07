@@ -1,13 +1,32 @@
+#
+# -*- coding: utf-8 -*-
+# GitHub  gui_plotlib
+# =============================================================================
+# Name                : gui_plotlib.py
+# Date                : 2017-08-17 15:38:53
+# Author              : sol courtney
+# GitHub              : https://github.com/swc2124
+# Affiliation         : Columbia University NYC, NY
+# Email               : swc2124@columbia.edu
+# Language            : Python
+# Last Modified by    : swc21
+# Last Modified time  : 2017-08-31 17:36:09
+# =============================================================================
 
-from __future__ import division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import os
-import numpy as np
 import matplotlib as mpl
+
+from .starcat_lib import np
+from .starcat_lib import os
+
 mpl.use('TkAgg')
 
 import matplotlib.pyplot as plt
-from astropy.table import Table
+
+from .starcat_lib import Table
 
 
 def kpc_to_degree(d_mpc):
@@ -114,6 +133,19 @@ def make_box(session, name=None):
     new_region['x1'] = xbox[1] + session.grid_center_x
     new_region['y0'] = ybox[1] + session.grid_center_y
     new_region['y1'] = ybox[0] + session.grid_center_y
+
+    # store all file handels for later.
+    new_region['table_fh'] = session.table_fh
+    new_region['mag_table_fh'] = session.mag_table_fh
+    new_region['pxpy_table_fh'] = session.pxpy_table_fh
+
+    # store other info too.
+    new_region['distance'] = session.distance
+    new_region['filter'] = session.filter
+    new_region['n_sats'] = session.n_sats
+    new_region['sat0'] = session.sat0
+    new_region['sat1'] = session.sat1
+    new_region['abs_limit'] = session.abs_limit
 
     # append this new region dict to this halo's list of regions
     session.regions[str(session.halo)].append(new_region)
