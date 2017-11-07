@@ -5,25 +5,12 @@ background galaxy catlogs. Using the WingsTips lib, produce mixed list
 of objects including stars and appropriate sampling of background
 galaxies in STIPS input format
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-from wingtips import int
-from wingtips import open
 
 from wingtips import WingTips as stips
-from wingtips import _sc
-from wingtips import astro_ascii
-from wingtips import np
-from wingtips import os
-from wingtips import time
+from wingtips import time, np, ascii
 
-
-table_dir = os.path.join(os.path.dirname(_sc.__file__), 'data', 'tables')
-f_names = ['h15.shell.1Mpc.in']#, 'h15.shell.3Mpc.in',
-#           'h15.shell.5Mpc.in', 'h15.shell.10Mpc.in']
-files = (os.path.join(table_dir, fh) for fh in f_names)
+files = ['h15.shell.1Mpc.in', 'h15.shell.3Mpc.in',
+             'h15.shell.5Mpc.in', 'h15.shell.10Mpc.in']
 ZP_AB = np.array([26.365, 26.357, 26.320, 26.367, 25.913])
 filters = ['Z087', 'Y106', 'J129', 'H158', 'F184']
 
@@ -33,24 +20,30 @@ def make_stips():
     Returns:
         NoneType
     '''
-    # Step through files in "files".
+#   Step through files in "files".
     for i, infile in enumerate(files):
-        # File handle prefix for later (starpre).
+
+#       File handle prefix for later (starpre).
         starpre = '_'.join(infile.split('.')[:-1])
-        # Extract distance Mpc from filename (dist).
+
+#       Extract distance Mpc from filename (dist).
         dist = float(infile.split('.')[2][:-3])
-        # Read in the data file (data) and print.
-        data = astro_ascii.read(infile)
+
+#       Read in the data file (data) and print.
+        data = ascii.read(infile)
         print('\nRead in %s \n' % infile)
-        # Right ascension (RA) & declination (DEC).
+
+#       Right ascension (RA) & declination (DEC).
         RA = data['col1']
         DEC = data['col2']
-        # Magnitude array (M).
+
+#       Magnitude array (M).
         M = np.array([
             data['col3'], data['col4'],
             data['col5'], data['col6'],
             data['col7']]).T
-        # What is this doing?
+
+#       What is this doing?
         temp = [
             stips.from_scratch(
                 flux=stips.get_counts(
@@ -77,31 +70,44 @@ def mix_stips(_fltrs=filters, _fnames=files, _outprefix='Mixed'):
     Returns:
         NoneType
     '''
-    # Make an empty list to stash galaxies into (galaxies).
+#   Make an empty list to stash galaxies into (galaxies).
     galaxies = []
 
-    # Step through files in "_fnames".
+#   Step through files in "_fnames".
     for i, infile in enumerate(_fnames):
-        # File handle prefix for later (starpre).
+
+#       File handle prefix for later (starpre).
         starpre = '_'.join(infile.split('.')[:-1])
-        # New empty list (radec).
+
+#       New empty list (radec).
         radec = []
-        # Step through filters "_fltrs".
+
+#       Step through filters "_fltrs".
         for j, filt in enumerate(_fltrs):
+
             stars = stips([starpre + '_' + filt[0] + '.tbl'])
-            #  this the first infile?
+
+#           Is this the first infile?
             if i == 0:
                 galaxies.append(stips([filt + '.txt']))
                 galaxies[j].flux_to_Sb()
+
             if len(radec) == 0:
                 radec = galaxies[j].random_radec_for(stars)
+
+#
             galaxies[j].replace_radec(radec)
+
+#
             stars.merge_with(galaxies[j])
-            # File handle (outfile).
+
+#           # File handle (outfile).
             outfile = '_'.join((_outprefix, starpre, filt[0])) + '.tbl'
-            # Write stars to file.
+
+#           # Write stars to file.
             stars.write_stips(outfile, ipac=True)
-            # ite new catalog header to file.
+
+#           Write new catalog header to file.
             with open(outfile, 'r+') as f:
                 content = f.read()
                 f.seek(0, 0)

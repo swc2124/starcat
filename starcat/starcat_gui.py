@@ -1,188 +1,24 @@
-#
-# -*- coding: utf-8 -*-
-# GitHub  starcat_gui
-# =============================================================================
-# Name                : starcat_gui.py
-# Date                : 2017-08-16 22:35:03
-# Author              : sol courtney
-# GitHub              : https://github.com/swc2124
-# Affiliation         : Columbia University NYC, NY
-# Email               : swc2124@columbia.edu
-# Language            : Python
-# Last Modified by    : swc21
-# Last Modified time  : 2017-08-31 17:35:02
-# =============================================================================
-#
-'''This is the main file to be run as python starcat_gui.py
-
-Attributes
-----------
-root : {[type]}
-    [description]
-app : {[type]}
-    [description]
-root.mainloop() : {[type]}
-    [description]
-
 '''
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-
+===========================================================================
+starcat v0.1.0
+September 2016
+Sol W. Courtney
+swc2124@columbia.edu
+Columbia University NYC, NY
+===========================================================================
+this is the main file to be run
+python starcat_gui.py
+'''
+from __future__ import division, print_function
+import os
 import shutil
-
-from builtins import dict
-from builtins import int
-from future.utils import iteritems
-from io import open
-from starcat_lib import os
-
-try:
-    from PIL import Image as PImage
-    from PIL import ImageTk
-    PhotoImage = ImageTk.PhotoImage
-except ImportError as e:
-    print(e[0], file=os.sys.stderr)
-    from tkinter import PhotoImage
-    from tkinter import Image as PImage
-
-print(os.sys.version, file=os.sys.stdout)
-if (os.sys.version_info > (3, 0)):
-    # Python 3 code in this block
-    import tkinter.filedialog as tkFileDialog
-    import tkinter.simpledialog as tkSimpleDialog
-else:
-    # Python 2 code in this block
-    import tkFileDialog
-    import tkSimpleDialog
-
-from tkinter import Frame
-from tkinter import Label
-from tkinter import Menu
-from tkinter import PanedWindow
-from tkinter import SUNKEN
-from tkinter import Tk
-from tkinter import W
-
-
-
-from astropy.table import hstack
-from starcat_lib import Table
-from starcat_lib import np
-
-try:
-    from . import gui_plotlib as gplt
-except ImportError as e:
-    print(e[0], file=os.sys.stderr)
-    import gui_plotlib as gplt
-
-
-def select_stars(_stars, _region):
-    # Find the stars in the table that
-    # are in the region (idx).print('finding stars within region boundaries',
-    # file=os.sys.stdout)
-    print('x0:', _region['x0'], file=os.sys.stdout)
-    print('x1:', _region['x1'], file=os.sys.stdout)
-    print('y0:', _region['y0'], file=os.sys.stdout)
-    print('y1:', _region['y1'], file=os.sys.stdout)
-    idx_ = np.nonzero(
-        np.logical_and(
-            np.logical_and(
-                _stars['x_int'] >= _region['x0'],
-                _stars['x_int'] <= _region['x1']),
-            np.logical_and(
-                _stars['y_int'] >= _region['y0'],
-                _stars['y_int'] <= _region['y1'])))[0]
-    return _stars[idx_], idx_
-
-
-def load_table(_table_fh):
-    return Table.read(_table_fh, path='data')
-
-
-def check_dir(_pth):
-    if not os.path.isdir(_pth):
-        os.mkdir(_pth)
-        print(_pth, file=os.sys.stdout)
-
-
-def my_mkdir(_dir):
-    if not type(_dir) == list:
-        _dir = [_dir]
-    for _path in _dir:
-        if not os.path.isdir(_path):
-            print('making ', _path, file=os.sys.stderr)
-            os.mkdir(_path)
-    print('done', file=os.sys.stdout)
-
-
-def catalog_path(_dir, _name, _r, _typ):
-    print('making catalog directory', file=os.sys.stdout)
-    out_dir = os.path.join(_dir, _name)
-    check_dir(out_dir)
-    out_dir = os.path.join(out_dir, _typ[0])
-    check_dir(out_dir)
-    return os.path.join(out_dir, _r + _typ[1])
-
-
-def output_catalog(_region, _c_typ, _out_pth):
-    '''[summary]
-
-    [description]
-
-    Parameters
-    ----------
-    _region : {dict}
-        dictionary of all the regions data.
-
-    _c_typ : {list}
-        _c_typ[0] = 'name'
-        _c_typ[1] = '.ext'
-        _c_typ[2] = 'format'
-
-    _out_pth : {str}
-        full PATH to output directory.
-    '''
-    # Make the file handle for the new catalog (cat_fh).
-    cat_fh_ = catalog_path(_out_pth, _region['halo'], _region['name'], _c_typ)
-    # Load halo data table (table)
-    table_ = load_table(_region['table_fh'])
-    # Find stars in region (region_idx).
-    # Select stars from table (stars).
-    stars_, r_idx_ = select_stars(table_, _region)
-    # Make catalog.
-    if _c_typ[0] == 'STIPS':
-        pass
-    else:
-        # Load position table (pos_table).
-        pos_table_ = load_table(_region['pxpy_table_fh'])
-        # Load magnitude table (mag_table).
-        mag_table_ = load_table(_region['mag_table_fh'])
-        # Hstack the two together.
-        fits_table_ = hstack([pos_table_[r_idx_], mag_table_[r_idx_], stars_])
-        fits_table_.pprint()
-        if 'spinbin_output_fh' in fits_table_.meta.keys():
-            del fits_table_.meta['spinbin_output_fh']
-        print('writing catalog to disc')
-        fits_table_.write(cat_fh_, format=_c_typ[2], overwrite=True)
-        print('adding row to record table')
-        row_ = [_region['halo']]
-        row_.append(_region['name'])
-        row_.append(len(idx))
-        row_.append(fits_table_['mact'].sum())
-        row_.append(_region['x0'])
-        row_.append(_region['x1'])
-        row_.append(_region['y0'])
-        row_.append(_region['y1'])
-        row_.append(fits_table_['feh'].min())
-        row_.append(fits_table_['feh'].mean())
-        row_.append(fits_table_['feh'].max())
-        row_.append(fits_table_['age'].min())
-        row_.append(fits_table_['age'].mean())
-        row_.append(fits_table_['age'].max())
-        print(_region['name'], 'done', file=os.sys.stdout)
-    return row_
+import numpy as np
+from PIL import Image as PImage, ImageTk
+from Tkinter import *
+import tkFileDialog
+import tkSimpleDialog
+from astropy.table import Table, hstack
+import gui_plotlib as gplt
 
 
 class StatusBar(Frame):
@@ -201,39 +37,42 @@ class StatusBar(Frame):
         self.label.update_idletasks()
 
 
+def my_mkdir(_dir):
+    if not os.path.isdir(_dir):
+        print('making ', _dir)
+        os.mkdir(_dir)
+        print('done')
+
+
 class App:
 
     def __init__(self, master):
 
+        # =====================================================================
+        #                              SETUP
+        # =====================================================================
+
+        # main window
         self.master = master
         self.master.title('StarCat')
         self.master.resizable(True, True)
 
         # file tree
-        try:
-            import starcat as _sc
-            pkg_pth = os.path.dirname(_sc.__file__).lower()
-            # preexisting directories
-            self.data_dir = os.path.join(pkg_pth, 'data')
-            self.table_dir = os.path.join(self.data_dir, 'tables')
-            self.grid_dir = os.path.join(self.data_dir, 'grids')
-            # New folders for output
-            py_pth = os.sys.prefix.lower()
-            cur_dir = os.path.abspath(os.path.curdir).lower()
-            commonprefix = os.path.commonprefix([py_pth, pkg_pth, cur_dir])
-            self.prefix = os.path.join(commonprefix, 'Starcat')
-            self.save_dir = os.path.join(self.prefix, 'saved')
-            self.plot_dir = os.path.join(self.prefix, 'plots')
-            self.catalog_dir = os.path.join(self.prefix, 'catalogs')
-            new_dirs = [self.prefix, self.plot_dir, self.catalog_dir]
-            my_mkdir(new_dirs)
+        self.data_dir = os.path.join(os.path.sep.join(
+            (os.path.abspath(gplt.__file__)).split(os.path.sep)[:-2]), 'data')
 
-        except (ImportError, IOError, WindowsError) as e:
-            #print(e[0], file=os.sys.stderr)
-            os.sys.exit(e)
+        # preexisting directories
+        self.table_dir = os.path.join(self.data_dir, 'tables')
+        self.grid_dir = os.path.join(self.data_dir, 'grids')
 
-        #
-        self.filter_type = 'h158'
+        # new directories to be made
+        self.save_dir = os.path.join(self.data_dir, 'saved')
+        self.plot_dir = os.path.join(self.data_dir, 'plots')
+        self.catalog_dir = os.path.join(self.data_dir, 'catalogs')
+        my_mkdir(self.save_dir)
+        my_mkdir(self.plot_dir)
+        my_mkdir(self.catalog_dir)
+
         # regions
         self.regions = {}
         # 0.11 arcsec WFI detector pixel scale in arcseconds/pixel
@@ -264,8 +103,12 @@ class App:
         self.plot_has_cb = False
 
         # catalog settings
-        self.catalog_known_ext = ['.fits', '.hdf5', '.csv', '.txt']
+        self.catalog_known_ext = ['.fits', '.hdf5', '.csv']
         self.catalog_extention = '.fits'
+
+        # =====================================================================
+        #                              WINDOWS
+        # =====================================================================
 
         # status bar
         self.statusbar = StatusBar(self.master)
@@ -273,6 +116,10 @@ class App:
 
         # plot window
         self.make_plotwindow()
+
+        # =====================================================================
+        #                               MENUS
+        # =====================================================================
 
         # top menu
         topmenu = Menu(self.master)
@@ -418,21 +265,12 @@ class App:
         self.catalog_menu.add_command(
             label='Make Catalogs',
             command=self.catalog_makeall)
-        catalog_type_menu = Menu(catalog_menu)
-        catalog_type_menu.add_command(
-            label='STIPS',
-            command=self.catalog_set_STIPS)
-        catalog_type_menu.add_command(
-            label='fits',
-            command=self.catalog_set_fits)
-        catalog_menu.add_cascade(
-            label='Format',
-            menu=catalog_type_menu)
-
         self.catalog_menu.add_command(
             label='Set catalog output directory',
             command=self.catalog_set_output_dir)
-
+        self.catalog_menu.add_command(
+            label='Set catalog extension',
+            command=self.catalog_set_ext)
         self.catalog_menu.add_separator()
         self.catalog_menu.add_command(
             label='Remove all',
@@ -460,110 +298,9 @@ class App:
             command=self.plot_set_show_colorbar,
             background='lightgreen')
 
-    def record_table(self):
-        _names = ['halo', 'region', 'n_stars', 'M_tot',
-                  'x0', 'x1', 'y0', 'y1',
-                  'feh_min', 'feh_mean', 'feh_max',
-                  'age_min', 'age_mean', 'age_max']
-        _dtype = ['S10', 'S10', 'i', 'f',
-                  'i', 'i', 'i', 'i',
-                  'f', 'f', 'f',
-                  'f', 'f', 'f']
-        return Table(names=_names, dtype=_dtype)
-
-    def catalog_set_output_dir(self):
-        self.catalog_dir = tkFileDialog.askdirectory(
-            initialdir=os.path.curdir,
-            mustexist=True,
-            parent=self.plotwindow,
-            title='Catalog Output Directory')
-
-    def catalog_remove_all(self):
-        for file in os.listdir(self.catalog_dir):
-            print(' --> evaluating', file)
-            if file[:4] == 'halo':
-                dir_path = os.path.join(self.catalog_dir, file)
-                if os.path.isdir(dir_path):
-                    print(' --> removing', dir_path)
-                    shutil.rmtree(dir_path)
-                else:
-                    print(' --> skipping', dir_path)
-            else:
-                print(' --> not a halo output directory')
-
-    def catalog_set_ext(self):
-        known_types = ''
-        for typ in self.catalog_known_ext:
-            if typ == self.catalog_known_ext[- 1]:
-                segment = typ + '.'
-            else:
-                segment = typ + ', '
-
-            known_types += segment
-        ext = tkSimpleDialog.askstring(
-            title='Catalog Extension Type',
-            prompt='Enter new Ext \nchoose from: ' + known_types,
-            parent=self.plotwindow,
-            initialvalue=self.catalog_extention)
-        self.catalog_extention = ext
-    def catalog_set_STIPS(self):
-        pass
-
-    def catalog_set_fits(self):
-        pass
-
-    def catalog_set_hdf5(self):
-        pass
-
-    def catalog_set_txt(self):
-        pass
-
-    def catalog_set_csv(self):
-        pass
-
-    def catalog_makeall(self):
-
-        # If there are no regions to use.
-        if not self.regions.keys():
-            print('there are no regions to catalog')
-            return
-
-        # Make a catalog for each halo (halo) in self.regions.
-        for halo in self.regions.keys():
-
-            # Make a record table for this halos regions (rec_table).
-            rec_table = self.record_table()
-
-            # step through this halos regions (region).
-            for region in self.regions[halo][2:]:
-
-                # Terminal.
-                print('loading region:', region['name'], 'for', halo)
-                for key in region.keys():
-                    print(' -> ', key, ' : ', region[key])
-
-                row = output_catalog(
-                    region, self.catalog_type, self.catalog_dir)
-                rec_table.add_row(row)
-                print(region['name'], 'done\n')
-
-            print('writing record log text file')
-            for halo in rec_table['halo']:
-                table_fh = os.path.join(
-                    self.catalog_dir, halo, 'recordtable.txt')
-                with open(table_fh, 'w') as record_text:
-                    for line in rec_table.pformat(max_width=200):
-                        record_text.write(line + '\n')
-
-            print('saving reference plot to local catalog file')
-            for plot_fh in os.listdir(self.plot_dir):
-                if plot_fh[:6] == halo:
-                    src = os.path.join(self.plot_dir, plot_fh)
-                    dest = os.path.join(self.catalog_dir, halo, plot_fh)
-                    print('moving', plot_fh)
-                    print('from:', src)
-                    print('to:', dest)
-                    shutil.move(src, dest)
+    # =====================================================================
+    #                              FUNCTIONS
+    # =====================================================================
 
     def make_cmd(self):
         gplt.plot_cmd(self)
@@ -579,7 +316,7 @@ class App:
             print('no color bar to plot')
             return
         image = PImage.open(self.plot_cb_fh)
-        photo = PhotoImage(image)
+        photo = ImageTk.PhotoImage(image)
         self.plot_cb = Label(master=self.plotwindow, image=photo)
         self.plot_cb.image = photo
         self.plot_cb.grid(row=3, column=0)
@@ -647,37 +384,158 @@ class App:
                 os.remove(os.path.join(self.plot_dir, plot_file))
                 print(' --> removed', plot_file)
 
-    def plot_halo(self):
-        if self.has_plot:
-            self.clear_label_image()
-        else:
-            self.plot = Label(master=self.plotwindow, image='', cursor='cross')
-        print('making plot file handle')
-        self.plot_fh = os.path.join(self.plot_dir, self.halo + '.png')
-        print(self.plot_fh)
-        print('done')
-        print('plotting')
-        gplt.plot_halo(self)
-        print('opening plot:', self.plot_fh)
-        image = PImage.open(self.plot_fh).resize(self.plot_size)
-        print('done')
-        print('converting to TKimage')
-        photo = PhotoImage(image)
-        print('done')
-        print('making label for plot display')
-        self.plot = Label(master=self.plotwindow, image=photo, cursor='cross')
-        print('done')
-        print('attaching image to label')
-        self.plot.image = photo
-        print('binding click function')
-        self.plot.bind("<Button-3>", self.right_click)
-        self.plot.bind("<Button-1>", self.mouse_location)
-        print('packing image label')
-        self.plot.grid(row=0, column=0)
-        if self.plot_has_cb and self.show_cb:
-            self.plot_show_colorbar()
+    def record_table(self):
+        _names = ['halo', 'region', 'n_stars', 'M_tot',
+                  'x0', 'x1', 'y0', 'y1',
+                  'feh_min', 'feh_mean', 'feh_max',
+                  'age_min', 'age_mean', 'age_max']
+        _dtype = ['S10', 'S10', 'i', 'f',
+                  'i', 'i', 'i', 'i',
+                  'f', 'f', 'f',
+                  'f', 'f', 'f']
+        return Table(names=_names, dtype=_dtype)
 
+    def catalog_set_output_dir(self):
+        self.catalog_dir = tkFileDialog.askdirectory(
+            initialdir=os.path.curdir,
+            mustexist=True,
+            parent=self.plotwindow,
+            title='Catalog Output Directory')
 
+    def catalog_remove_all(self):
+        for file in os.listdir(self.catalog_dir):
+            print(' --> evaluating', file)
+            if file[:4] == 'halo':
+                dir_path = os.path.join(self.catalog_dir, file)
+                if os.path.isdir(dir_path):
+                    print(' --> removing', dir_path)
+                    shutil.rmtree(dir_path)
+                else:
+                    print(' --> skipping', dir_path)
+            else:
+                print(' --> not a halo output directory')
+
+    def catalog_set_ext(self):
+        known_types = ''
+        for typ in self.catalog_known_ext:
+            if typ == self.catalog_known_ext[- 1]:
+                segment = typ + '.'
+            else:
+                segment = typ + ', '
+
+            known_types += segment
+        ext = tkSimpleDialog.askstring(
+            title='Catalog Extension Type',
+            prompt='Enter new Ext \nchoose from: ' + known_types,
+            parent=self.plotwindow,
+            initialvalue=self.catalog_extention)
+        self.catalog_extention = ext
+
+    def catalog_makeall(self):
+        if not self.regions.keys():
+            print('there are no regions to catalog')
+            return
+        for halo in self.regions.keys():
+            record_table = self.record_table()
+            for region in self.regions[halo][2:]:
+                print('loading region:', region['name'], 'for', halo)
+                for key in region.keys():
+                    print(' -> ', key, ' : ', region[key])
+                catalog_name = region['name']
+                catalog_dir = os.path.join(self.catalog_dir, halo)
+                if not os.path.isdir(catalog_dir):
+                    print('making catalog directory')
+                    os.mkdir(catalog_dir)
+                    print(catalog_dir)
+                else:
+                    print('catalog directory exists')
+                    print('contents:')
+                    for f in os.listdir(catalog_dir):
+                        print('  --> ', f)
+                print('making catalog file handle')
+                catalog_fh = region['name'] + self.catalog_extention
+                catalog_fh = os.path.join(catalog_dir, catalog_fh)
+                print(catalog_fh)
+                if os.path.isfile(catalog_fh):
+                    print('catalog exists')
+                    try:
+                        number = '_0' + \
+                            str(int(catalog_fh.split('.')[-2][-2:]) + 1)
+                    except:
+                        number = '_01'
+                    catalog_fh = os.path.join(
+                        catalog_dir, region['name'] + number + self.catalog_extention)
+                print('finding stars within region boundaries')
+                print('x0:', region['x0'])
+                print('x1:', region['x1'])
+                print('y0:', region['y0'])
+                print('y1:', region['y1'])
+                idx = np.nonzero(
+                    np.logical_and(
+                        np.logical_and(
+                            self.table['x_int'] >= region['x0'],
+                            self.table['x_int'] <= region['x1']),
+                        np.logical_and(
+                            self.table['y_int'] >= region['y0'],
+                            self.table['y_int'] <= region['y1'])))[0]
+                print('found', len(idx), 'stars within region')
+                print('making catalog from table')
+                pos_table = Table.read(
+                    self.pxpy_table_fh, format='hdf5', path='data')
+                fits_table = hstack([pos_table[idx], self.table[idx]])
+                fits_table.pprint()
+                if 'spinbin_output_fh' in fits_table.meta.keys():
+                    del fits_table.meta['spinbin_output_fh']
+                print('writing catalog to disc')
+                fits_table.write(catalog_fh, format=self.catalog_extention[
+                                 1:], overwrite=True)
+                print('adding row to record table')
+                row = [region['halo'], region['name'], len(idx), fits_table['mact'].sum(),
+                       region['x0'], region['x1'], region['y0'], region['y1'],
+                       fits_table['feh'].min(), fits_table[
+                    'feh'].mean(), fits_table['feh'].max(),
+                    fits_table['age'].min(), fits_table['age'].mean(), fits_table['age'].max()]
+                record_table.add_row(row)
+                print(region['name'], 'done\n')
+            print('writing record log text file')
+            for halo in record_table['halo']:
+                table_fh = os.path.join(
+                    self.catalog_dir, halo, 'recordtable.txt')
+                with open(table_fh, 'w') as record_text:
+                    for line in record_table.pformat(max_width=200):
+                        record_text.write(line + '\n')
+            print('saving reference plot to local catalog file')
+            for plot_fh in os.listdir(self.plot_dir):
+                if plot_fh[:6] == halo:
+                    src = os.path.join(self.plot_dir, plot_fh)
+                    dest = os.path.join(self.catalog_dir, halo, plot_fh)
+                    print('moving', plot_fh)
+                    print('from:', src)
+                    print('to:', dest)
+                    shutil.move(src, dest)
+
+    def make_plotwindow(self):
+        self.plotwindow = PanedWindow(
+            master=self.master,
+            width=self.plotwindow_size,
+            height=self.plotwindow_size,
+            bd=10)
+        self.plotwindow.grid(row=1, column=0)
+        self.plotwindow.bind("<Button-1>", self.mouse_location)
+
+    def clear_label_image(self):
+        self.plot.destroy()
+        if self.show_cb and self.plot_has_cb:
+            try:
+                self.plot_cb.destroy()
+            except AttributeError, e:
+                print(e)
+
+    def update_status_bar(self):
+        self.smsg_region = '[current regions: ' + \
+            str(self.regions[str(self.halo)][1]) + ']    '
+        self.smsg_status = self.smsg_region + self.smsg_mouse_xy + self.smsg_kpc_xy
+        self.statusbar.set(self.smsg_status)
 
     def h4rg_10(self):
         self.region_pixel_size = 0.11
@@ -751,29 +609,6 @@ class App:
         print(self.smsg_status)
         print(self.master.geometry())
 
-    def make_plotwindow(self):
-        self.plotwindow = PanedWindow(
-            master=self.master,
-            width=self.plotwindow_size,
-            height=self.plotwindow_size,
-            bd=10)
-        self.plotwindow.grid(row=1, column=0)
-        self.plotwindow.bind("<Button-1>", self.mouse_location)
-
-    def clear_label_image(self):
-        self.plot.destroy()
-        if self.show_cb and self.plot_has_cb:
-            try:
-                self.plot_cb.destroy()
-            except AttributeError as e:
-                print(e, file=os.sys.stderr)
-
-    def update_status_bar(self):
-        self.smsg_region = '[current regions: ' + \
-            str(self.regions[str(self.halo)][1]) + ']    '
-        self.smsg_status = self.smsg_region + self.smsg_mouse_xy + self.smsg_kpc_xy
-        self.statusbar.set(self.smsg_status)
-
     def load_halo(self):
         self.load_halo_grid()
         self.load_halo_table()
@@ -787,7 +622,7 @@ class App:
             comps = fh.split('_')
             if not comps[0] == self.halo:
                 continue
-            if fh.split('_')[2] == self.filter_type:
+            if fh.split('_')[2] == 'h158':
                 self.table_fh = os.path.join(self.table_dir, fh)
                 self.mag_table_fh = os.path.join(
                     self.table_dir, fh.replace('h158', 'CMD'))
@@ -797,7 +632,7 @@ class App:
                 print(self.mag_table_fh)
                 print(self.pxpy_table_fh)
                 break
-        self.table = load_table(self.table_fh)
+        self.table = Table.read(self.table_fh, format='hdf5', path='data')
         self.distance = self.table.meta['d_mpc']
         self.filter = self.table.meta['f_type']
         self.n_sats = self.table.meta['n_sats']
@@ -821,11 +656,38 @@ class App:
         print(self.halo)
         self.master.title('StarCat - ' + self.halo)
 
+    def plot_halo(self):
+        if self.has_plot:
+            self.clear_label_image()
+        else:
+            self.plot = Label(master=self.plotwindow, image='', cursor='cross')
+        print('making plot file handle')
+        self.plot_fh = os.path.join(self.plot_dir, self.halo + '.png')
+        print(self.plot_fh)
+        print('done')
+        print('plotting')
+        gplt.plot_halo(self)
+        print('opening plot:', self.plot_fh)
+        image = PImage.open(self.plot_fh).resize(self.plot_size)
+        print('done')
+        print('converting to TKimage')
+        photo = ImageTk.PhotoImage(image)
+        print('done')
+        print('making label for plot display')
+        self.plot = Label(master=self.plotwindow, image=photo, cursor='cross')
+        print('done')
+        print('attaching image to label')
+        self.plot.image = photo
+        print('binding click function')
+        self.plot.bind("<Button-3>", self.right_click)
+        self.plot.bind("<Button-1>", self.mouse_location)
+        print('packing image label')
+        self.plot.grid(row=0, column=0)
+        if self.plot_has_cb and self.show_cb:
+            self.plot_show_colorbar()
 
-def run_gui():
+if __name__ == '__main__':
+
     root = Tk()
     app = App(root)
     root.mainloop()
-
-if __name__ == '__main__':
-    run_gui()
