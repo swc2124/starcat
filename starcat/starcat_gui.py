@@ -34,7 +34,7 @@ import shutil
 
 from builtins import dict
 from builtins import int
-#from future.utils import iteritems
+from future.utils import iteritems
 from io import open
 from starcat_lib import os
 
@@ -74,7 +74,7 @@ from starcat_lib import np
 try:
     from . import gui_plotlib as gplt
 except ImportError as e:
-    #print(e, file=os.sys.stderr)
+    print(e[0], file=os.sys.stderr)
     import gui_plotlib as gplt
 
 
