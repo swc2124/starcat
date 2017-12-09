@@ -14,9 +14,9 @@ import os
 import shutil
 import numpy as np
 from PIL import Image as PImage, ImageTk
-from Tkinter import *
-import tkFileDialog
-import tkSimpleDialog
+from tkinter import *
+from tkinter import filedialog as tkFileDialog
+from tkinter import simpledialog as tkSimpleDialog
 from astropy.table import Table, hstack
 import gui_plotlib as gplt
 
@@ -403,17 +403,22 @@ class App:
             title='Catalog Output Directory')
 
     def catalog_remove_all(self):
+       
         for file in os.listdir(self.catalog_dir):
-            print(' --> evaluating', file)
-            if file[:4] == 'halo':
-                dir_path = os.path.join(self.catalog_dir, file)
-                if os.path.isdir(dir_path):
-                    print(' --> removing', dir_path)
-                    shutil.rmtree(dir_path)
+            try:
+                print(' --> evaluating', file)
+                if file[:4] == 'halo':
+                    dir_path = os.path.join(self.catalog_dir, file)
+                    if os.path.isdir(dir_path):
+                        print(' --> removing', dir_path)
+                        shutil.rmtree(dir_path)
+                    else:
+                        print(' --> skipping', dir_path)
                 else:
-                    print(' --> skipping', dir_path)
-            else:
-                print(' --> not a halo output directory')
+                    print(' --> not a halo output directory')
+            except PermissionError as e:
+                print(e)
+                print(file, 'was not deleted')
 
     def catalog_set_ext(self):
         known_types = ''
@@ -482,13 +487,31 @@ class App:
                 print('making catalog from table')
                 pos_table = Table.read(
                     self.pxpy_table_fh, format='hdf5', path='data')
-                fits_table = hstack([pos_table[idx], self.table[idx]])
+                mag_table = Table.read(
+                   self.mag_table_fh, format='hdf5', path='data')
+
+                fits_table = hstack([mag_table[idx], pos_table[idx], self.table[idx]])
                 fits_table.pprint()
                 if 'spinbin_output_fh' in fits_table.meta.keys():
                     del fits_table.meta['spinbin_output_fh']
                 print('writing catalog to disc')
-                fits_table.write(catalog_fh, format=self.catalog_extention[
+                try:
+                    for _typ in fits_table.keys():
+                        #print(_typ)
+                        #print(fits_table[_typ].unit)
+                        if fits_table[_typ].unit == 'dex':
+                            del fits_table[_typ].unit
+                        elif fits_table[_typ].unit == 'int16':
+                            del fits_table[_typ].unit
+                    fits_table.write(catalog_fh, format=self.catalog_extention[
                                  1:], overwrite=True)
+                except TypeError as e:
+                    print('=========================================')
+                    print(e)
+                    fits_table.pprint(max_lines=5, show_unit=True, show_dtype=True)
+                    print('=========================================')
+                   
+
                 print('adding row to record table')
                 row = [region['halo'], region['name'], len(idx), fits_table['mact'].sum(),
                        region['x0'], region['x1'], region['y0'], region['y1'],
@@ -528,7 +551,7 @@ class App:
         if self.show_cb and self.plot_has_cb:
             try:
                 self.plot_cb.destroy()
-            except AttributeError, e:
+            except AttributeError as e:
                 print(e)
 
     def update_status_bar(self):
