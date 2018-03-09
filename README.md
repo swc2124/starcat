@@ -4,7 +4,7 @@ Make stellar catalogs from simulated halos.
  
 # Getting started
 ## 1. Clone this repo onto your local machine.
-!Screenshot](data/readme_png/clone.png)
+![Screenshot](data/readme_png/clone.png)
         
         
     git clone https://github.com/swc2124/starcat.git
