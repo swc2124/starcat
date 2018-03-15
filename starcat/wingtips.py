@@ -3,11 +3,12 @@
 WFIRST Infrared Nearby Galaxies Test Image Product Simulator.
 Produces input files for the WFIRTS STIPS simulator.
 '''
-import time
 import numpy as np
+import time
+
 from astropy import wcs
-from astropy.io import fits
 from astropy.io import ascii as astro_ascii
+from astropy.io import fits
 from astropy.table import Table
 
 class WingTips:

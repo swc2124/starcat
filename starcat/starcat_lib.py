@@ -1,17 +1,13 @@
-#
-# -*- coding: utf-8 -*-
-# GitHub  starcat_lib
-# =============================================================================
-# Name                : starcat_lib.py
-# Date                : 2017-08-30 13:36:36
-# Author              : sol courtney
-# GitHub              : https://github.com/swc2124
-# Affiliation         : Columbia University NYC, NY
-# Email               : swc2124@columbia.edu
-# Language            : Python
-# Last Modified by    : swc21
-# Last Modified time  : 2017-08-31 17:33:16
-# =============================================================================
+# ============================================================================
+# Author                : swc21
+# Date                  : 2018-03-13 20:11:26
+# Project               : GitHub
+# File Name             : starcat_lib
+# Last Modified by      : swc21
+# Last Modified time    : 2018-03-14 12:26:30
+# ============================================================================
+# 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

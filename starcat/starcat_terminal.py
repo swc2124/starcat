@@ -1,13 +1,17 @@
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
+
 from time import sleep
 
-import matplotlib.pyplot as plt
 import ebf
+import matplotlib.pyplot as plt
 import numpy as np
 
-from c_functions import bin as _bin, integerize as _int
+from c_functions import bin as _bin
+from c_functions import integerize as _int
 
 import printlib as plib
 '''
@@ -34,10 +38,10 @@ def find_data_dirs(pgrm_data=program_data):
             data_dir = os.path.join(pth, os.path.sep)
             first = False
         data_dir = os.path.join(data_dir, pth)
-        print(' 		', data_dir)
+        print('         ', data_dir)
 
     data_dir = os.path.join(data_dir, 'data')
-    print(' 		', data_dir)
+    print('         ', data_dir)
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
     pgrm_data['data dir'] = data_dir
@@ -162,23 +166,23 @@ def plot_halo(halo_fh, pgrm_data=program_data):
     ax.set_yticklabels(ticks)
 
     grid_fh = os.path.join(pgrm_data['grid dir'], halo_fh)
-    print(' 		loading :', grid_fh)
+    print('         loading :', grid_fh)
     grid = np.load(grid_fh)
-    print(' 		done')
+    print('         done')
     # fill radius gridslice
-    print(' 		correcting radius')
+    print('         correcting radius')
     grid = fix_rslice(grid)
-    print(' 		done')
-    print(' 		making heat map')
+    print('         done')
+    print('         making heat map')
     ax.pcolormesh(np.log10(grid[8:, :-3, 0]),
                   cmap=plt.cm.bone_r, vmin=1.0, vmax=4.5)
-    print(' 		making contour plot')
+    print('         making contour plot')
     cp = ax.contour(grid[:, :, 4], [50, 100, 150, 300], colors='k',
                     linewidths=1.5, alpha=.25, linestyles='dashed')
-    print(' 		setting contour labels')
+    print('         setting contour labels')
     cl = ax.clabel(cp, [50, 100, 150, 300], inline=1, fmt='%s Kpc',
                    fontsize=10, color='k', linewidth=50, alpha=1)
-    print(' 		setting limits')
+    print('         setting limits')
     # limits
     center = grid.shape[0] / 2
     include = center / 2
@@ -188,24 +192,24 @@ def plot_halo(halo_fh, pgrm_data=program_data):
     ax.set_ylim([lim1, lim0])
 
     if pgrm_data['regions']:
-        print(' 		setting boxes')
+        print('         setting boxes')
         # boxes [(((x1, x2), (y1, y2)), size)]
         for box in pgrm_data['regions']:
-            print(' 		', box)
+            print('         ', box)
             place_box(ax, box, 1)
 
-    print(' 		setting kpc grid')
+    print('         setting kpc grid')
     ax.axes.grid(alpha=.4, linestyle='dashed', color='grey')
     plot_fh = os.path.join(
         pgrm_data['plot dir'], halo_fh.split('_')[0] + '.png')
-    print(' 		saving plot now to :', plot_fh)
+    print('         saving plot now to :', plot_fh)
     fig.savefig(plot_fh, dpi=800)
     program_data['plot'] = plot_fh
-    print(' 		done')
+    print('         done')
 
 
 def exit():
-    selection = raw_input(' 		are you sure you wantto quit? y/[n]')
+    selection = raw_input('         are you sure you wantto quit? y/[n]')
     if selection in ['y', 'Y', 'yes', 'Yes', 'YES']:
         import sys
         clear()
@@ -231,13 +235,13 @@ def main_menu(pgrm_data=program_data):
         if key == 'halo filehandels':
             continue
         space_to_add = 15 - len(key)
-        print(' 		', key, ' ' * space_to_add, ' : ', pgrm_data[key])
+        print('         ', key, ' ' * space_to_add, ' : ', pgrm_data[key])
 
-    print('\n 		select from the following items')
-    print(' 		----------------------------------------')
+    print('\n       select from the following items')
+    print('         ----------------------------------------')
     for i, _menu in enumerate(all_menus):
-        print(' 		[', i, '] ', _menu[0])
-    selection = int(raw_input('\n 		menu number: '))
+        print('         [', i, '] ', _menu[0])
+    selection = int(raw_input('\n       menu number: '))
 
     clear()
     print(plib.main_title)
@@ -248,29 +252,29 @@ def select_halo_file(pgrm_data=program_data):
     halo_grid_dir = program_data['grid dir']
     halo = program_data['halo']
 
-    print('\n 		selecting halo file')
-    print(' 		----------------------------------------')
-    print(' 		current halo           :', halo)
-    print(' 		current grid directory :', halo_grid_dir)
+    print('\n       selecting halo file')
+    print('         ----------------------------------------')
+    print('         current halo           :', halo)
+    print('         current grid directory :', halo_grid_dir)
 
     halo_filehandels = os.listdir(halo_grid_dir)
-    print('\n 		select halo file from current grid files')
-    print(' 		----------------------------------------')
+    print('\n       select halo file from current grid files')
+    print('         ----------------------------------------')
     for i, fh in enumerate(halo_filehandels):
-        print(' 		[', i, '] ', fh.split('_')[0])
-    selection = int(raw_input(' 		select halo: '))
+        print('         [', i, '] ', fh.split('_')[0])
+    selection = int(raw_input('         select halo: '))
     program_data['halo file'] = halo_filehandels[selection]
     halo_fh = program_data['halo file']
     program_data['halo'] = halo_fh.split('_')[0]
     halo = program_data['halo']
-    print('\n 		----------------------------------------')
-    print(' 		current halo           :', halo)
-    print(' 		new halo file          :', halo_fh)
-    print(' 		----------------------------------------')
+    print('\n       ----------------------------------------')
+    print('         current halo           :', halo)
+    print('         new halo file          :', halo_fh)
+    print('         ----------------------------------------')
     # TODO load saved regions
     pgrm_data['regions'] = []
 
-    print('\n 		plotting halo now')
+    print('\n       plotting halo now')
     plot_halo(halo_fh)
     main_menu()
 
@@ -278,46 +282,46 @@ def select_halo_file(pgrm_data=program_data):
 def select_region(pgrm_data=program_data):
     clear()
     print(plib.main_title)
-    print('\n 		selecting regions for ', pgrm_data['halo'])
-    print(' 		----------------------------------------')
-    print('\n 		current regions')
-    print(' 		----------------------------------------')
+    print('\n       selecting regions for ', pgrm_data['halo'])
+    print('         ----------------------------------------')
+    print('\n       current regions')
+    print('         ----------------------------------------')
     if not len(pgrm_data['regions']):
-        print(' 		 none')
+        print('          none')
     else:
         for i, reg in enumerate(pgrm_data['regions']):
-        	print(' 		[', i, '] ', reg)
-    print('\n 		select from the following items')
-    print(' 		----------------------------------------')
+            print('         [', i, '] ', reg)
+    print('\n       select from the following items')
+    print('         ----------------------------------------')
     for i, _menu in enumerate(select_region_menue):
-        print(' 		[', i, '] ', _menu[0])
-    selection = int(raw_input('\n 		menu number: '))
+        print('         [', i, '] ', _menu[0])
+    selection = int(raw_input('\n       menu number: '))
     select_region_menue[selection][1]()
 
 
 def remove_region(pgrm_data=program_data):
-    selection = int(raw_input('\n 		enter region number to delete'))
+    selection = int(raw_input('\n       enter region number to delete'))
     del pgrm_data['regions'][selection]
     plot_halo(program_data['halo file'])
     select_region()
 
 
 def new_region(pgrm_data=program_data):
-    print('\n 		enter new region location and size')
-    print(' 		----------------------------------------')
-    new_x = int(raw_input(' 		new region X :'))
-    print(' 		', new_x)
-    new_y = int(raw_input(' 		new region Y :'))
-    print(' 		', new_y)
-    new_size = raw_input(' 		new region size : (enter for default)')
+    print('\n       enter new region location and size')
+    print('         ----------------------------------------')
+    new_x = int(raw_input('         new region X :'))
+    print('         ', new_x)
+    new_y = int(raw_input('         new region Y :'))
+    print('         ', new_y)
+    new_size = raw_input('      new region size : (enter for default)')
     if new_size == '':
         new_size = 10
     else:
         new_size = int(new_size)
 
-    print(' 		', new_size)
+    print('         ', new_size)
     new_box = make_boxe((new_x, new_y), size=new_size)
-    print(' 		new box:', new_box, 'size:', new_size)
+    print('         new box:', new_box, 'size:', new_size)
     pgrm_data['regions'].append(new_box)
     plot_halo(program_data['halo file'])
     select_region()
@@ -330,9 +334,9 @@ all_menus = [
 ]
 
 select_region_menue = [
-	('remove_region', remove_region),
-	('new_region', new_region),
-	('main menu', main_menu)
+    ('remove_region', remove_region),
+    ('new_region', new_region),
+    ('main menu', main_menu)
 ]
 
 if __name__ == '__main__':

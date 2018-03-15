@@ -1,24 +1,31 @@
+# ============================================================================
+# Author                : swc21
+# Date                  : 2018-03-13 20:11:26
+# Project               : GitHub
+# File Name             : starcat_gui
+# Last Modified by      : swc21
+# Last Modified time    : 2018-03-14 12:27:52
+# ============================================================================
+# 
 '''
-===========================================================================
-starcat v0.1.0
-September 2016
-Sol W. Courtney
-swc2124@columbia.edu
-Columbia University NYC, NY
-===========================================================================
 this is the main file to be run
 python starcat_gui.py
 '''
-from __future__ import division, print_function
+from __future__ import division
+from __future__ import print_function
+
+import gui_plotlib as gplt
+import numpy as np
 import os
 import shutil
-import numpy as np
-from PIL import Image as PImage, ImageTk
+
+from PIL import Image as PImage
+from PIL import ImageTk
+from astropy.table import Table
+from astropy.table import hstack
 from tkinter import *
 from tkinter import filedialog as tkFileDialog
 from tkinter import simpledialog as tkSimpleDialog
-from astropy.table import Table, hstack
-import gui_plotlib as gplt
 
 
 class StatusBar(Frame):
@@ -48,7 +55,7 @@ class App:
 
     def __init__(self, master):
 
-        # =====================================================================
+        # ====================================================================
         #                              SETUP
         # =====================================================================
 

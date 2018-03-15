@@ -7,7 +7,9 @@ galaxies in STIPS input format
 '''
 
 from wingtips import WingTips as stips
-from wingtips import time, np, ascii
+from wingtips import ascii
+from wingtips import np
+from wingtips import time
 
 files = ['h15.shell.1Mpc.in', 'h15.shell.3Mpc.in',
              'h15.shell.5Mpc.in', 'h15.shell.10Mpc.in']

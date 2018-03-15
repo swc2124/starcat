@@ -1,12 +1,14 @@
 
-from __future__ import division, print_function
+from __future__ import division
+from __future__ import print_function
 
-import os
-import numpy as np
 import matplotlib as mpl
+import numpy as np
+import os
 mpl.use('TkAgg')
 
 import matplotlib.pyplot as plt
+
 from astropy.table import Table
 
 
