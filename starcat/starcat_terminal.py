@@ -4,19 +4,15 @@ from __future__ import print_function
 
 import os
 
-from time import sleep
-
-import ebf
 import matplotlib.pyplot as plt
 import numpy as np
 
-from c_functions import bin as _bin
-from c_functions import integerize as _int
-
 import printlib as plib
 '''
-'halo ebf directory': os.path.join(os.environ['HOMEPATH'], 'Desktop', 'halo_ebf'),
-'halo filehandels': os.listdir(os.path.join(os.environ['HOMEPATH'], 'Desktop', 'halo_ebf')),
+'halo ebf directory':
+    os.path.join(os.environ['HOMEPATH'], 'Desktop', 'halo_ebf'),
+'halo filehandels':
+    os.listdir(os.path.join(os.environ['HOMEPATH'], 'Desktop', 'halo_ebf')),
 '''
 program_data = {
 
@@ -75,7 +71,8 @@ def place_box(_ax, _box, _boxid):
     _box is ((x0, x1), (y0, y1))
     _boxid is the box ID
 
-    make a single box from a set of numbers like this: box = ((x0, x1), (y0, y1))
+    make a single box from a set of numbers
+        like this: box = ((x0, x1), (y0, y1))
     _ax.vlines(x0, y0, y1)
     _ax.vlines(x1, y0, y1)
     _ax.hlines(y0, x0, x1)
@@ -209,7 +206,7 @@ def plot_halo(halo_fh, pgrm_data=program_data):
 
 
 def exit():
-    selection = raw_input('         are you sure you wantto quit? y/[n]')
+    selection = input('         are you sure you wantto quit? y/[n]')
     if selection in ['y', 'Y', 'yes', 'Yes', 'YES']:
         import sys
         clear()

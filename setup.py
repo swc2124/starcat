@@ -1,24 +1,15 @@
 
-import os
-
 from numpy import get_include
-from setuptools import find_packages
 from setuptools import setup
 
-
 setup(
-
     name='starcat',
     version='0.1.0',
-
     author='Sol W. Courtney',
     author_email='swc2124@Columbia.edu',
-
     maintainer='Sol W. Courtney',
     maintainer_email='swc2124@Columbia.edu',
-
     url='https://github.com/swc2124/starcat',
-
     description=(
         'Python tools for working with stellar data '
         'in the form of numpy arrays.  Intended to '
@@ -36,8 +27,8 @@ setup(
         'starcat': ['data/*'],
     },
     install_requires=[
-        'docutils>=0.3', 
+        'docutils>=0.3',
         'numpy>=0.x',
-        'ebfpy>=0.x', 
+        'ebfpy>=0.x',
         'astropy>=0.x',
         'matplotlib>=0.x'])

@@ -12,7 +12,7 @@ from wingtips import np
 from wingtips import time
 
 files = ['h15.shell.1Mpc.in', 'h15.shell.3Mpc.in',
-             'h15.shell.5Mpc.in', 'h15.shell.10Mpc.in']
+         'h15.shell.5Mpc.in', 'h15.shell.10Mpc.in']
 ZP_AB = np.array([26.365, 26.357, 26.320, 26.367, 25.913])
 filters = ['Z087', 'Y106', 'J129', 'H158', 'F184']
 
@@ -25,7 +25,7 @@ def make_stips():
 #   Step through files in "files".
     for i, infile in enumerate(files):
 
-#       File handle prefix for later (starpre).
+        #       File handle prefix for later (starpre).
         starpre = '_'.join(infile.split('.')[:-1])
 
 #       Extract distance Mpc from filename (dist).
@@ -78,7 +78,7 @@ def mix_stips(_fltrs=filters, _fnames=files, _outprefix='Mixed'):
 #   Step through files in "_fnames".
     for i, infile in enumerate(_fnames):
 
-#       File handle prefix for later (starpre).
+        #       File handle prefix for later (starpre).
         starpre = '_'.join(infile.split('.')[:-1])
 
 #       New empty list (radec).
@@ -119,6 +119,7 @@ def mix_stips(_fltrs=filters, _fnames=files, _outprefix='Mixed'):
                     '\\center = (' + str(stars.center[0]) +
                     '  ' + str(stars.center[1]) + ')\n' + content)
     return None
+
 
 if __name__ == '__main__':
     tic = time.time()

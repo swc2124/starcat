@@ -6,7 +6,7 @@
 # Last Modified by      : swc21
 # Last Modified time    : 2018-03-14 12:26:30
 # ============================================================================
-# 
+#
 
 from __future__ import absolute_import
 from __future__ import division
@@ -17,6 +17,7 @@ import numpy as np
 import os
 
 from astropy.table import Table
+
 
 def select_stars(_stars, _region):
     # Find the stars in the table that
@@ -97,7 +98,3 @@ class CatalogManager(Table):
     @staticmethod
     def remove_all():
         return None
-
-
-
-

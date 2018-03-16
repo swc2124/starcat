@@ -4,9 +4,9 @@
 # Project               : GitHub
 # File Name             : starcat_gui
 # Last Modified by      : swc21
-# Last Modified time    : 2018-03-14 12:27:52
+# Last Modified time    : 2018-03-15 20:32:40
 # ============================================================================
-# 
+#
 '''
 this is the main file to be run
 python starcat_gui.py
@@ -82,7 +82,7 @@ class App:
 
         # regions
         self.regions = {}
-        # 0.11 arcsec WFI detector pixel scale in arcseconds/pixel
+        # 0.11 arcsec WFI detector pixel scale in arc-seconds/pixel
         self.region_pixel_size = 0.11
         # (x, y) Number of active detector columns
         self.region_ccd_size = (4088, 4088)
@@ -410,7 +410,7 @@ class App:
             title='Catalog Output Directory')
 
     def catalog_remove_all(self):
-       
+
         for file in os.listdir(self.catalog_dir):
             try:
                 print(' --> evaluating', file)
@@ -444,16 +444,19 @@ class App:
         self.catalog_extention = ext
 
     def catalog_makeall(self):
+
         if not self.regions.keys():
             print('there are no regions to catalog')
             return
+
         for halo in self.regions.keys():
             record_table = self.record_table()
             for region in self.regions[halo][2:]:
+
                 print('loading region:', region['name'], 'for', halo)
                 for key in region.keys():
                     print(' -> ', key, ' : ', region[key])
-                catalog_name = region['name']
+                # catalog_name = region['name']
                 catalog_dir = os.path.join(self.catalog_dir, halo)
                 if not os.path.isdir(catalog_dir):
                     print('making catalog directory')
@@ -473,10 +476,12 @@ class App:
                     try:
                         number = '_0' + \
                             str(int(catalog_fh.split('.')[-2][-2:]) + 1)
-                    except:
+                    except IOError as e:
                         number = '_01'
                     catalog_fh = os.path.join(
-                        catalog_dir, region['name'] + number + self.catalog_extention)
+                        catalog_dir,
+                        region['name'] + number + self.catalog_extention)
+
                 print('finding stars within region boundaries')
                 print('x0:', region['x0'])
                 print('x1:', region['x1'])
@@ -491,49 +496,59 @@ class App:
                             self.table['y_int'] >= region['y0'],
                             self.table['y_int'] <= region['y1'])))[0]
                 print('found', len(idx), 'stars within region')
+
                 print('making catalog from table')
                 pos_table = Table.read(
                     self.pxpy_table_fh, format='hdf5', path='data')
                 mag_table = Table.read(
-                   self.mag_table_fh, format='hdf5', path='data')
-
-                fits_table = hstack([mag_table[idx], pos_table[idx], self.table[idx]])
+                    self.mag_table_fh, format='hdf5', path='data')
+                fits_table = hstack(
+                    [mag_table[idx], pos_table[idx], self.table[idx]])
                 fits_table.pprint()
                 if 'spinbin_output_fh' in fits_table.meta.keys():
                     del fits_table.meta['spinbin_output_fh']
+
                 print('writing catalog to disc')
                 try:
                     for _typ in fits_table.keys():
-                        #print(_typ)
-                        #print(fits_table[_typ].unit)
+                        # print(_typ)
+                        # print(fits_table[_typ].unit)
                         if fits_table[_typ].unit == 'dex':
                             del fits_table[_typ].unit
                         elif fits_table[_typ].unit == 'int16':
                             del fits_table[_typ].unit
                     fits_table.write(catalog_fh, format=self.catalog_extention[
-                                 1:], overwrite=True)
+                        1:], overwrite=True)
                 except TypeError as e:
                     print('=========================================')
                     print(e)
-                    fits_table.pprint(max_lines=5, show_unit=True, show_dtype=True)
+                    fits_table.pprint(
+                        max_lines=5, show_unit=True, show_dtype=True)
                     print('=========================================')
-                   
 
                 print('adding row to record table')
-                row = [region['halo'], region['name'], len(idx), fits_table['mact'].sum(),
-                       region['x0'], region['x1'], region['y0'], region['y1'],
-                       fits_table['feh'].min(), fits_table[
-                    'feh'].mean(), fits_table['feh'].max(),
-                    fits_table['age'].min(), fits_table['age'].mean(), fits_table['age'].max()]
+                row = [
+                    region['halo'],
+                    region['name'],
+                    len(idx),
+                    fits_table['mact'].sum(),
+                    region['x0'], region['x1'], region['y0'], region['y1'],
+                    fits_table['feh'].min(), fits_table['feh'].mean(),
+                    fits_table['feh'].max(), fits_table['age'].min(),
+                    fits_table['age'].mean(), fits_table['age'].max()]
                 record_table.add_row(row)
                 print(region['name'], 'done\n')
+
             print('writing record log text file')
             for halo in record_table['halo']:
                 table_fh = os.path.join(
-                    self.catalog_dir, halo, 'recordtable.txt')
+                    str(self.catalog_dir),
+                    str(halo.decode('ascii')),
+                    str('recordtable.txt'))
                 with open(table_fh, 'w') as record_text:
                     for line in record_table.pformat(max_width=200):
                         record_text.write(line + '\n')
+
             print('saving reference plot to local catalog file')
             for plot_fh in os.listdir(self.plot_dir):
                 if plot_fh[:6] == halo:
@@ -564,7 +579,10 @@ class App:
     def update_status_bar(self):
         self.smsg_region = '[current regions: ' + \
             str(self.regions[str(self.halo)][1]) + ']    '
-        self.smsg_status = self.smsg_region + self.smsg_mouse_xy + self.smsg_kpc_xy
+        self.smsg_status = (
+            self.smsg_region
+            + self.smsg_mouse_xy
+            + self.smsg_kpc_xy)
         self.statusbar.set(self.smsg_status)
 
     def h4rg_10(self):
@@ -572,16 +590,19 @@ class App:
         self.region_ccd_size = (4088, 4088)
 
     def region_set_ccd_size(self):
+        _promt = str('Enter new X length in pixels '
+                     + '\n Number of active detector columns:')
         ccd_x = tkSimpleDialog.askinteger(
             title='Set WFI Active Detector CCD Size X-Axis',
-            prompt='Enter new X length in pixels\nNumber of active detector columns: ',
+            prompt=_promt,
             minvalue=100,
             maxvalue=16000,
             parent=self.plotwindow,
             initialvalue=self.region_ccd_size[0])
         ccd_y = tkSimpleDialog.askinteger(
             title='Set WFI Active Detector CCD Size Y-Axis',
-            prompt='Enter new Y length in pixels\nNumber of active detector rows ',
+            prompt=str('Enter new Y length in pixels'
+                       + '\nNumber of active detector rows '),
             minvalue=100,
             maxvalue=16000,
             parent=self.plotwindow,
@@ -591,7 +612,7 @@ class App:
     def region_set_pix_size(self):
         pixel = tkSimpleDialog.askfloat(
             title='Set WFI Pixel Scale',
-            prompt='Enter new WFI detector pixel scale in arcseconds/pixel ',
+            prompt='Enter new WFI detector pixel scale in arc-seconds/pixel ',
             minvalue=0.05,
             maxvalue=0.17,
             parent=self.plotwindow,
@@ -601,7 +622,8 @@ class App:
     def region_remove(self):
         answer = tkSimpleDialog.askinteger(
             title='Remove Region',
-            prompt='Which region do you want to delete?\nEnter the integer number as seen on the plot')
+            prompt=str('Which region do you want to delete?'
+                       + '\nEnter the integer number as seen on the plot'))
         del self.regions[str(self.halo)][int(answer) + 1]
         self.regions[str(self.halo)][1] -= 1
         self.plot_halo()
@@ -715,6 +737,7 @@ class App:
         self.plot.grid(row=0, column=0)
         if self.plot_has_cb and self.show_cb:
             self.plot_show_colorbar()
+
 
 if __name__ == '__main__':
 
