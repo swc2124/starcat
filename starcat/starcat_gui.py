@@ -4,7 +4,7 @@
 # Project               : GitHub
 # File Name             : starcat_gui
 # Last Modified by      : swc21
-# Last Modified time    : 2018-03-15 20:32:40
+# Last Modified time    : 2018-03-15 20:46:19
 # ============================================================================
 #
 '''
@@ -82,7 +82,7 @@ class App:
 
         # regions
         self.regions = {}
-        # 0.11 arcsec WFI detector pixel scale in arc-seconds/pixel
+        # 0.11 arc-sec WFI detector pixel scale in arc-seconds/pixel
         self.region_pixel_size = 0.11
         # (x, y) Number of active detector columns
         self.region_ccd_size = (4088, 4088)
@@ -311,6 +311,7 @@ class App:
 
     def make_cmd(self):
         gplt.plot_cmd(self)
+        self.plot_halo()
 
     def plot_set_show_colorbar(self):
         if self.show_cb:
