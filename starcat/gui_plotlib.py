@@ -305,7 +305,7 @@ def plot_cmd(session):
 
     # return fig
 
-    # make plot filehandel (fh) and save plot
+    # make plot file handle (fh) and save plot
     plot_fh = os.path.join(session.plot_dir, session.halo +
                            region['name'] + '_cmd' + session.plot_extention)
     print('saving plot now to :', plot_fh)
